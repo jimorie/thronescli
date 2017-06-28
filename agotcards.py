@@ -68,6 +68,12 @@ SORT_KEYS = [
     help="Use case sensitive searching (default is not to)."
 )
 @option(
+    "--exact",
+    is_flag=True,
+    default=False,
+    help="Use exact matching (default is to use partial matching)."
+)
+@option(
     "--faction",
     "-f",
     multiple=True,
@@ -365,6 +371,17 @@ def test_card (card, options):
     return True
 
 
+def match_value (value, card_value, options):
+    if card_value is None:
+        return False
+    if not options["case"]:
+        card_value = card_value.lower()
+    if options["exact"]:
+        return value == card_value
+    else:
+        return value in card_value
+
+
 class CardFilters (object):
     @staticmethod
     def test_cost (card, values, options):
@@ -388,8 +405,7 @@ class CardFilters (object):
 
     @staticmethod
     def test_name (card, value, options):
-        name = card["name"] if options["case"] else card["name"].lower()
-        return value in name
+        return match_value(value, card["name"], options)
 
     @staticmethod
     def test_non_unique (card, values, options):
@@ -397,14 +413,7 @@ class CardFilters (object):
 
     @staticmethod
     def test_search (card, value, options):
-        name   = card["name"]
-        text   = card["text"] or ""
-        traits = card["traits"] or ""
-        if not options["case"]:
-            name = name.lower()
-            text = text.lower()
-            traits = traits.lower()
-        return value in name or value in text or value in traits
+        return match_value(value, card["name"], options) or match_value(value, card["text"], options)
 
     @staticmethod
     def test_str (card, values, options):
@@ -420,21 +429,11 @@ class CardFilters (object):
 
     @staticmethod
     def test_text (card, values, options):
-        text = card["text"]
-        if not text:
-            return False
-        if not options["case"]:
-            text = text.lower()
-        return all(value in text for value in values)
+        return all(match_value(value, card["text"], options) for value in values)
 
     @staticmethod
     def test_text_isnt (card, values, options):
-        text = card["text"]
-        if not text:
-            return True
-        if not options["case"]:
-            text = text.lower()
-        return all(value not in text for value in values)
+        return all(not match_value(value, card["text"], options) for value in values)
 
     @staticmethod
     def test_trait (card, values, options):
