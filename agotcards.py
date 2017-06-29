@@ -62,6 +62,12 @@ DB_KEY_MAPPING = {
     "str"    : "strength",
     "type"   : "type_code"
 }
+DRAFT_PACKS = [
+    "VDS"
+]
+TEST_FALSE = [
+    "include_draft"
+]
 
 
 @command()
@@ -128,6 +134,12 @@ DB_KEY_MAPPING = {
     "--icon-isnt",
     multiple=True,
     help="Return cards without given icon (exclusive)."
+)
+@option(
+    "--include-draft",
+    is_flag=True,
+    default=False,
+    help="Include cards only legal in draft format (default is not to)."
 )
 @option(
     "--name",
@@ -497,8 +509,9 @@ def test_card (card, options):
             test = getattr(CardFilters, "test_" + option)
         except AttributeError:
             test = None
-        if test and value:
+        if test and (value or option in TEST_FALSE):
             if not test(card, value, options):
+
                 return False
     return True
 
@@ -549,6 +562,10 @@ class CardFilters (object):
     @staticmethod
     def test_icon_isnt (card, values, options):
         return all(not card["is_{}".format(value)] for value in values)
+
+    @staticmethod
+    def test_include_draft (card, value, options):
+        return value or card["pack_code"] not in DRAFT_PACKS
 
     @staticmethod
     def test_name (card, value, options):
