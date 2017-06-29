@@ -54,6 +54,7 @@ SORT_KEYS = [
 COUNT_KEYS = [
     "cost",
     "faction",
+    "icon",
     "str",
     "type"
 ]
@@ -519,7 +520,11 @@ def test_card (card, options):
 def count_card (card, options, counts):
     if options["count"]:
         for count_field in options["count"]:
-            if card[count_field]:
+            if count_field == "icon":
+                for icon in ("military", "intrigue", "power"):
+                    if card["is_" + icon]:
+                        counts[count_field][icon] += 1
+            elif card[count_field]:
                 counts[count_field][card[count_field]] += 1
 
 
