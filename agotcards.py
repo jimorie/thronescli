@@ -43,6 +43,11 @@ SORT_KEYS = [
     "name",
     "str"
 ]
+DB_KEY_MAPPING = {
+    "faction": "faction_code",
+    "str"    : "strength",
+    "type"   : "type_code"
+}
 
 
 @command()
@@ -224,6 +229,7 @@ def preprocess_options (search, options):
     options["search"] = search
     preprocess_faction(options)
     preprocess_icon(options)
+    preprocess_sort(options)
 
 
 def preprocess_faction (options):
@@ -245,7 +251,11 @@ def preprocess_icon (options):
     preprocess_field(options, "icon_isnt", ICONS)
 
 
-def preprocess_field (options, field, candidates, preprocess_value=None):
+def preprocess_sort (options):
+    preprocess_field(options, "sort", SORT_KEYS, postprocess_value=get_field_db_key)
+
+
+def preprocess_field (options, field, candidates, preprocess_value=None, postprocess_value=None):
     if options[field]:
         values = list(options[field])
         for i in xrange(len(values)):
@@ -258,6 +268,8 @@ def preprocess_field (options, field, candidates, preprocess_value=None):
                     get_field_name(field),
                     values[i]
                 ))
+            if postprocess_value:
+                value = postprocess_value(value)
             values[i] = value
         options[field] = tuple(values)
 
@@ -266,22 +278,8 @@ def get_field_name (field):
     return field[:-len("_isnt")] if field.endswith("_isnt") else field
 
 
-def sort_cards (cards, options):
-    if options["sort"]:
-        key_chain = list(options["sort"])
-        for i in xrange(len(key_chain)):
-            key = get_single_match(key_chain[i], SORT_KEYS)
-            if key is None:
-                raise ClickException("Bad sort field: {}".format(
-                    key
-                ))
-            if key == "faction":
-                key = "faction_code"
-            elif key == "str":
-                key = "strength"
-            key_chain[i] = key
-        return sorted(cards, key=itemgetter(*key_chain))
-    return cards
+def get_field_db_key (field):
+    return DB_KEY_MAPPING.get(field, field)
 
 
 def get_single_match (value, candidates):
@@ -306,6 +304,12 @@ def load_cards (options):
         update_cards()
     with open(CARDS_FILE, "r") as f:
         return load(f)
+
+
+def sort_cards (cards, options):
+    if options["sort"]:
+        return sorted(cards, key=itemgetter(*options["sort"]))
+    return cards
 
 
 def update_cards ():
