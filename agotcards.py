@@ -347,22 +347,6 @@ def get_field_db_key (field):
     return DB_KEY_MAPPING.get(field, field)
 
 
-def get_pretty_name (field, meta=None):
-    if type(field) is int:
-        if meta:
-            return "{} {}".format(field, get_pretty_name(meta))
-        else:
-            return str(field)
-    if field in FACTIONS:
-        return get_faction_name(field)
-    elif field.endswith("_code"):
-        return field[:-len("_code")].title()
-    elif field == "strength":
-        return "STR"
-    else:
-        return field.title()
-
-
 def get_faction_name (faction_code):
     return FACTIONS[faction_code].get("name", "House {}".format(faction_code.title()))
 
@@ -382,153 +366,12 @@ def load_cards (options):
         return load(f)
 
 
-def sort_cards (cards, options):
-    if options["sort"]:
-        return sorted(cards, key=itemgetter(*options["sort"]))
-    return cards
-
-
 def update_cards ():
     try:
         remove(CARDS_FILE)
     except OSError:
         pass
     urlretrieve(CARDS_URL, CARDS_FILE)
-
-
-def print_card (card, options):
-    if options["verbose"]:
-        print_verbose_card(card, options)
-    elif options["name_only"]:
-        secho(card["name"], fg="cyan", bold=True)
-    else:
-        print_brief_card(card, options)
-
-
-def print_verbose_card (card, options):
-    secho(card["name"], fg="cyan", bold=True)
-    if card["traits"]:
-        secho(card["traits"], fg="magenta", bold=True)
-    if card["text"]:
-        print_markup(card["text"])
-    print_verbose_fields(card, [
-        ("Faction",    "faction_name"),
-        ("Loyal",      "is_loyal"),
-        ("Unique",     "is_unique"),
-        ("Income",     "income"),
-        ("Initiative", "income"),
-        ("Claim",      "claim"),
-        ("Reserve",    "reserve"),
-        ("Cost",       "cost"),
-        ("STR",        "strength")
-    ])
-    if card["type_code"] == "character":
-        secho("Icons:", bold=True, nl=False)
-        if card["is_military"]:
-            secho(" M", fg="red", nl=False)
-        if card["is_intrigue"]:
-            secho(" I", fg="green", nl=False)
-        if card["is_power"]:
-            secho(" P", fg="blue", nl=False)
-        echo("")
-    print_verbose_fields(card, [
-        ("Deck Limit",  "deck_limit"),
-        ("Expansion",   "pack_name"),
-        ("Card #",      "position"),
-        ("Illustrator", "illustrator"),
-        ("Flavor Text", "flavor")
-    ])
-    echo("")
-
-
-def print_verbose_fields (card, fields):
-    for name, field in fields:
-        value = card.get(field)
-        if value is not None:
-            secho("{}: ".format(name), bold=True, nl=False)
-            if type(value) is bool:
-                echo("Yes" if value else "No")
-            elif field in ["flavor"]:
-                print_markup(value)
-            else:
-                echo(unicode(value))
-
-
-def print_brief_card (card, options):
-    secho(card["name"], fg="cyan", bold=True, nl=False)
-    secho(":", nl=False)
-    if card["is_unique"] is True:
-        secho(" Unique.", nl=False)
-    secho(" " + card["faction_name"] + ".", nl=False)
-    secho(" " + card["type_name"] + ".", nl=False)
-    if card["cost"] is not None:
-        secho(" " + str(card["cost"]) + " Cost.", nl=False)
-    if card["type_code"] == "character":
-        secho(" " + str(card["strength"]) + " STR.", nl=False)
-        if card["is_military"]:
-            secho(" M", fg="red", bold=True, nl=False)
-            secho(".", nl=False)
-        if card["is_intrigue"]:
-            secho(" I", fg="green", bold=True, nl=False)
-            secho(".", nl=False)
-        if card["is_power"]:
-            secho(" P", fg="blue", bold=True, nl=False)
-            secho(".", nl=False)
-    if card["type_code"] == "plot":
-        secho(" " + str(card["income"]) + " Gold.", nl=False)
-        secho(" " + str(card["initiative"]) + " Init.", nl=False)
-        secho(" " + str(card["claim"]) + " Claim.", nl=False)
-        secho(" " + str(card["reserve"]) + " Reserve.", nl=False)
-    secho("")
-
-
-def print_markup (text):
-    for styled_text in parse_markup(text):
-        echo(styled_text, nl=False)
-    echo("")
-
-
-def parse_markup (text):
-    """Very simple markup parser. Does not support nested tags."""
-    kwargs = {}
-    beg = 0
-    while True:
-        end = text.find("<", beg)
-        if end >= 0:
-            yield style(text[beg:end], **kwargs)
-            beg = end
-            end = text.index(">", beg) + 1
-            tag = text[beg:end]
-            if tag == "<b>":
-                kwargs["bold"] = True
-            elif tag == "</b>":
-                kwargs.clear()
-            elif tag == "<i>":
-                kwargs["fg"] = "magenta"
-                kwargs["bold"] = True
-            elif tag == "</i>":
-                kwargs.clear()
-            beg = end
-        else:
-            yield style(text[beg:], **kwargs)
-            break
-
-
-def print_counts (counts, options, total):
-    if not options["verbose"] and not options["count_only"]:
-        echo("")
-    for count_field, count_data in counts.iteritems():
-        items = count_data.items()
-        for i in xrange(len(items)):
-            items[i] = (get_pretty_name(items[i][0], meta=count_field) + ":", items[i][1])
-        fill = max(len(item[0]) for item in items)
-        items.sort(key=itemgetter(1), reverse=True)
-        secho("{} counts:".format(get_pretty_name(count_field)), fg="green", bold=True)
-        for count_key, count_val in items:
-            secho("  {count_key: <{fill}} ".format(count_key=count_key, fill=fill), bold=True, nl=False)
-            echo(str(count_val))
-        echo("")
-    secho("Total count: {}".format(total), fg="green", bold=True)
 
 
 def filter_cards (cards, options):
@@ -669,6 +512,163 @@ class CardFilters (object):
     @staticmethod
     def test_unique (card, values, options):
         return card["is_unique"] == True
+
+
+def sort_cards (cards, options):
+    if options["sort"]:
+        return sorted(cards, key=itemgetter(*options["sort"]))
+    return cards
+
+
+def print_card (card, options):
+    if options["verbose"]:
+        print_verbose_card(card, options)
+    elif options["name_only"]:
+        secho(card["name"], fg="cyan", bold=True)
+    else:
+        print_brief_card(card, options)
+
+
+def print_verbose_card (card, options):
+    secho(card["name"], fg="cyan", bold=True)
+    if card["traits"]:
+        secho(card["traits"], fg="magenta", bold=True)
+    if card["text"]:
+        print_markup(card["text"])
+    print_verbose_fields(card, [
+        ("Faction",    "faction_name"),
+        ("Loyal",      "is_loyal"),
+        ("Unique",     "is_unique"),
+        ("Income",     "income"),
+        ("Initiative", "income"),
+        ("Claim",      "claim"),
+        ("Reserve",    "reserve"),
+        ("Cost",       "cost"),
+        ("STR",        "strength")
+    ])
+    if card["type_code"] == "character":
+        secho("Icons:", bold=True, nl=False)
+        if card["is_military"]:
+            secho(" M", fg="red", nl=False)
+        if card["is_intrigue"]:
+            secho(" I", fg="green", nl=False)
+        if card["is_power"]:
+            secho(" P", fg="blue", nl=False)
+        echo("")
+    print_verbose_fields(card, [
+        ("Deck Limit",  "deck_limit"),
+        ("Expansion",   "pack_name"),
+        ("Card #",      "position"),
+        ("Illustrator", "illustrator"),
+        ("Flavor Text", "flavor")
+    ])
+    echo("")
+
+
+def print_verbose_fields (card, fields):
+    for name, field in fields:
+        value = card.get(field)
+        if value is not None:
+            secho("{}: ".format(name), bold=True, nl=False)
+            if type(value) is bool:
+                echo("Yes" if value else "No")
+            elif field in ["flavor"]:
+                print_markup(value)
+            else:
+                echo(unicode(value))
+
+
+def print_brief_card (card, options):
+    secho(card["name"], fg="cyan", bold=True, nl=False)
+    secho(":", nl=False)
+    if card["is_unique"] is True:
+        secho(" Unique.", nl=False)
+    secho(" " + card["faction_name"] + ".", nl=False)
+    secho(" " + card["type_name"] + ".", nl=False)
+    if card["cost"] is not None:
+        secho(" " + str(card["cost"]) + " Cost.", nl=False)
+    if card["type_code"] == "character":
+        secho(" " + str(card["strength"]) + " STR.", nl=False)
+        if card["is_military"]:
+            secho(" M", fg="red", bold=True, nl=False)
+            secho(".", nl=False)
+        if card["is_intrigue"]:
+            secho(" I", fg="green", bold=True, nl=False)
+            secho(".", nl=False)
+        if card["is_power"]:
+            secho(" P", fg="blue", bold=True, nl=False)
+            secho(".", nl=False)
+    if card["type_code"] == "plot":
+        secho(" " + str(card["income"]) + " Gold.", nl=False)
+        secho(" " + str(card["initiative"]) + " Init.", nl=False)
+        secho(" " + str(card["claim"]) + " Claim.", nl=False)
+        secho(" " + str(card["reserve"]) + " Reserve.", nl=False)
+    secho("")
+
+
+def print_markup (text):
+    for styled_text in parse_markup(text):
+        echo(styled_text, nl=False)
+    echo("")
+
+
+def parse_markup (text):
+    """Very simple markup parser. Does not support nested tags."""
+    kwargs = {}
+    beg = 0
+    while True:
+        end = text.find("<", beg)
+        if end >= 0:
+            yield style(text[beg:end], **kwargs)
+            beg = end
+            end = text.index(">", beg) + 1
+            tag = text[beg:end]
+            if tag == "<b>":
+                kwargs["bold"] = True
+            elif tag == "</b>":
+                kwargs.clear()
+            elif tag == "<i>":
+                kwargs["fg"] = "magenta"
+                kwargs["bold"] = True
+            elif tag == "</i>":
+                kwargs.clear()
+            beg = end
+        else:
+            yield style(text[beg:], **kwargs)
+            break
+
+
+def print_counts (counts, options, total):
+    if not options["verbose"] and not options["count_only"]:
+        echo("")
+    for count_field, count_data in counts.iteritems():
+        items = count_data.items()
+        for i in xrange(len(items)):
+            items[i] = (get_pretty_name(items[i][0], meta=count_field) + ":", items[i][1])
+        fill = max(len(item[0]) for item in items)
+        items.sort(key=itemgetter(1), reverse=True)
+        secho("{} counts:".format(get_pretty_name(count_field)), fg="green", bold=True)
+        for count_key, count_val in items:
+            secho("  {count_key: <{fill}} ".format(count_key=count_key, fill=fill), bold=True, nl=False)
+            echo(str(count_val))
+        echo("")
+    secho("Total count: {}".format(total), fg="green", bold=True)
+
+
+def get_pretty_name (field, meta=None):
+    if type(field) is int:
+        if meta:
+            return "{} {}".format(field, get_pretty_name(meta))
+        else:
+            return str(field)
+    if field in FACTIONS:
+        return get_faction_name(field)
+    elif field.endswith("_code"):
+        return field[:-len("_code")].title()
+    elif field == "strength":
+        return "STR"
+    else:
+        return field.title()
 
 
 if __name__ == '__main__':
