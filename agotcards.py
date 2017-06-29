@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from collections import defaultdict
 from json import load
 from operator import itemgetter
 from os import remove
@@ -28,7 +29,9 @@ FACTIONS = {
     },
     "lannister": {},
     "martell": {},
-    "neutral": {},
+    "neutral": {
+        "name": "Neutral"
+    },
     "stark": {},
     "targaryen": {},
     "thenightswatch": {
@@ -48,6 +51,12 @@ SORT_KEYS = [
     "name",
     "str"
 ]
+COUNT_KEYS = [
+    "cost",
+    "faction",
+    "str",
+    "type"
+]
 DB_KEY_MAPPING = {
     "faction": "faction_code",
     "str"    : "strength",
@@ -59,6 +68,12 @@ DB_KEY_MAPPING = {
 @argument(
     "search",
     nargs=-1
+)
+@option(
+    "--case",
+    is_flag=True,
+    default=False,
+    help="Use case sensitive searching (default is not to)."
 )
 @option(
     "--cost",
@@ -77,10 +92,15 @@ DB_KEY_MAPPING = {
     help="Return cards with lower than given cost."
 )
 @option(
-    "--case",
+    "--count",
+    multiple=True,
+    help="Print card count breakdown for given field."
+)
+@option(
+    "--count-only",
     is_flag=True,
     default=False,
-    help="Use case sensitive searching (default is not to)."
+    help="Print card count breakdowns only."
 )
 @option(
     "--exact",
@@ -217,24 +237,39 @@ def main (ctx, search, **options):
     cards = load_cards(options)
     cards = filter_cards(cards, options)
     cards = sort_cards(cards, options)
+    counts = defaultdict(lambda: defaultdict(int))
+    total = 0
     for card in cards:
-        print_card(card, options)
+        if not options["count_only"]:
+            print_card(card, options)
+        count_card(card, options, counts)
+        total += 1
+    print_counts(counts, options, total)
 
 
 def preprocess_options (search, options):
-    search = " ".join(search)
+    preprocess_search(options, search)
+    preprocess_case(options)
+    preprocess_faction(options)
+    preprocess_icon(options)
+    preprocess_sort(options)
+    preprocess_count(options)
+
+
+def preprocess_search (options, search):
+    options["search"] = " ".join(search) if search else None
+
+
+def preprocess_case (options):
     if not options["case"]:
-        search = search.lower()
+        if options["search"]:
+            options["search"] = options["search"].lower()
         if options["name"]:
             options["name"] = options["name"].lower()
         if options["text"]:
             options["text"] = tuple(value.lower() for value in options["text"])
         if options["text_isnt"]:
             options["text_isnt"] = tuple(value.lower() for value in options["text_isnt"])
-    options["search"] = search
-    preprocess_faction(options)
-    preprocess_icon(options)
-    preprocess_sort(options)
 
 
 def preprocess_faction (options):
@@ -259,6 +294,10 @@ def preprocess_sort (options):
     preprocess_field(options, "sort", SORT_KEYS, postprocess_value=get_field_db_key)
 
 
+def preprocess_count (options):
+    preprocess_field(options, "count", COUNT_KEYS, postprocess_value=get_field_db_key)
+
+
 def preprocess_field (options, field, candidates, postprocess_value=None):
     if options[field]:
         values = list(options[field])
@@ -267,7 +306,7 @@ def preprocess_field (options, field, candidates, postprocess_value=None):
             value = value.lower()
             value = get_single_match(value, candidates)
             if value is None:
-                raise ClickException("Bad {}: {}".format(
+                raise ClickException("Bad {} argument: {}".format(
                     get_field_name(field),
                     values[i]
                 ))
@@ -275,18 +314,6 @@ def preprocess_field (options, field, candidates, postprocess_value=None):
                 value = postprocess_value(value)
             values[i] = value
         options[field] = tuple(values)
-
-
-def get_field_name (field):
-    return field[:-len("_isnt")] if field.endswith("_isnt") else field
-
-
-def get_field_db_key (field):
-    return DB_KEY_MAPPING.get(field, field)
-
-
-def get_faction_name (faction_code):
-    return FACTIONS[faction_code].get("name", faction_code.title())
 
 
 def get_single_match (value, candidates):
@@ -297,6 +324,34 @@ def get_single_match (value, candidates):
                 return None
             found = candidate
     return found
+
+
+def get_field_name (field):
+    return field[:-len("_isnt")] if field.endswith("_isnt") else field
+
+
+def get_field_db_key (field):
+    return DB_KEY_MAPPING.get(field, field)
+
+
+def get_pretty_name (field, meta=None):
+    if type(field) is int:
+        if meta:
+            return "{} {}".format(field, get_pretty_name(meta))
+        else:
+            return str(field)
+    if field in FACTIONS:
+        return get_faction_name(field)
+    elif field.endswith("_code"):
+        return field[:-len("_code")].title()
+    elif field == "strength":
+        return "STR"
+    else:
+        return field.title()
+
+
+def get_faction_name (faction_code):
+    return FACTIONS[faction_code].get("name", "House {}".format(faction_code.title()))
 
 
 def check_options (options):
@@ -413,6 +468,23 @@ def print_brief_card (card, options):
     secho("")
 
 
+def print_counts (counts, options, total):
+    if not options["verbose"] and not options["count_only"]:
+        echo("")
+    for count_field, count_data in counts.iteritems():
+        items = count_data.items()
+        for i in xrange(len(items)):
+            items[i] = (get_pretty_name(items[i][0], meta=count_field) + ":", items[i][1])
+        fill = max(len(item[0]) for item in items)
+        items.sort(key=itemgetter(1), reverse=True)
+        secho("{} counts:".format(get_pretty_name(count_field)), fg="green", bold=True)
+        for count_key, count_val in items:
+            secho("  {count_key: <{fill}} ".format(count_key=count_key, fill=fill), bold=True, nl=False)
+            echo(str(count_val))
+        echo("")
+    secho("Total count: {}".format(total), fg="green", bold=True)
+
+
 def filter_cards (cards, options):
     for card in cards:
         if test_card(card, options):
@@ -429,6 +501,13 @@ def test_card (card, options):
             if not test(card, value, options):
                 return False
     return True
+
+
+def count_card (card, options, counts):
+    if options["count"]:
+        for count_field in options["count"]:
+            if card[count_field]:
+                counts[count_field][card[count_field]] += 1
 
 
 def match_value (value, card_value, options):
