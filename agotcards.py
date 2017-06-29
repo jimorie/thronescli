@@ -32,6 +32,11 @@ FACTIONS = [
     "thenightswatch",
     "tyrell"
 ]
+ICONS = [
+    "military",
+    "intrigue",
+    "power"
+]
 SORT_KEYS = [
     "cost",
     "faction",
@@ -83,6 +88,16 @@ SORT_KEYS = [
     "--faction-isnt",
     multiple=True,
     help="Return cards with other than given faction (exclusive)."
+)
+@option(
+    "--icon",
+    multiple=True,
+    help="Return cards with given icon (exclusive)."
+)
+@option(
+    "--icon-isnt",
+    multiple=True,
+    help="Return cards without given icon (exclusive)."
 )
 @option(
     "--name",
@@ -198,28 +213,47 @@ def preprocess_options (search, options):
             options["text_isnt"] = tuple(value.lower() for value in options["text_isnt"])
     options["search"] = search
     preprocess_faction(options)
+    preprocess_icon(options)
 
 
 def preprocess_faction (options):
-    if options["faction"]:
-        values = list(options["faction"])
+    def preprocess_faction_value (value):
+        value = value.lower()
+        value = value.replace("'", "")
+        value = value.replace(" ", "")
+        if value == "nw" or value.startswith("ni"):
+            value = "thenightswatch"
+        elif value == "gj":
+            value = "greyjoy"
+        return value
+    preprocess_field(options, "faction", FACTIONS, preprocess_faction_value)
+    preprocess_field(options, "faction_isnt", FACTIONS, preprocess_faction_value)
+
+
+def preprocess_icon (options):
+    preprocess_field(options, "icon", ICONS)
+    preprocess_field(options, "icon_isnt", ICONS)
+
+
+def preprocess_field (options, field, candidates, preprocess_value=None):
+    if options[field]:
+        values = list(options[field])
         for i in xrange(len(values)):
             value = values[i]
-            value = value.lower()
-            value = value.replace("'", "")
-            value = value.replace(" ", "")
-            if value == "nw" or value.startswith("ni"):
-                value = "thenightswatch"
-            elif value == "gj":
-                value = "greyjoy"
-            else:
-                value = get_single_match(value, FACTIONS)
-                if value is None:
-                    raise ClickException("Bad faction: {}".format(
-                        values[i]
-                    ))
+            if preprocess_value:
+                value = preprocess_value(value)
+            value = get_single_match(value, candidates)
+            if value is None:
+                raise ClickException("Bad {}: {}".format(
+                    get_field_name(field),
+                    values[i]
+                ))
             values[i] = value
-        options["faction"] = tuple(values)
+        options[field] = tuple(values)
+
+
+def get_field_name (field):
+    return field[:-len("_isnt")] if field.endswith("_isnt") else field
 
 
 def sort_cards (cards, options):
@@ -407,6 +441,14 @@ class CardFilters (object):
     @staticmethod
     def test_faction_isnt (card, values, options):
         return all(not card["faction_code"].startswith(value.lower()) for value in values)
+
+    @staticmethod
+    def test_icon (card, values, options):
+        return all(card["is_{}".format(value)] for value in values)
+
+    @staticmethod
+    def test_icon_isnt (card, values, options):
+        return all(not card["is_{}".format(value)] for value in values)
 
     @staticmethod
     def test_name (card, value, options):
