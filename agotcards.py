@@ -110,6 +110,16 @@ SORT_KEYS = [
     help="Print only the card name."
 )
 @option(
+    "--loyal",
+    is_flag=True,
+    help="Return loyal cards."
+)
+@option(
+    "--non-loyal",
+    is_flag=True,
+    help="Return non-loyal cards."
+)
+@option(
     "--non-unique",
     is_flag=True,
     help="Return non-unique cards."
@@ -453,6 +463,14 @@ class CardFilters (object):
     @staticmethod
     def test_name (card, value, options):
         return match_value(value, card["name"], options)
+
+    @staticmethod
+    def test_loyal (card, values, options):
+        return card["is_loyal"] == True
+
+    @staticmethod
+    def test_non_loyal (card, values, options):
+        return card["is_loyal"] == False
 
     @staticmethod
     def test_non_unique (card, values, options):
