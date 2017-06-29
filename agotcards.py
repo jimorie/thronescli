@@ -165,7 +165,12 @@ SORT_KEYS = [
 )
 @pass_context
 def main (ctx, search, **options):
-    """A simple command line search tool for A Game of Thrones LCG."""
+    """
+    A simple command line search tool for A Game of Thrones LCG.
+
+    The default search argument matches cards against their name, text or
+    traits. See --help for more advanced search options.
+    """
     preprocess_options(search, options)
     if options["update"]:
         update_cards()
@@ -413,7 +418,11 @@ class CardFilters (object):
 
     @staticmethod
     def test_search (card, value, options):
-        return match_value(value, card["name"], options) or match_value(value, card["text"], options)
+        return (
+            CardFilters.test_name(card, value, options)
+            or CardFilters.test_text(card, (value,), options)
+            or CardFilters.test_trait(card, (value,), options)
+        )
 
     @staticmethod
     def test_str (card, values, options):
@@ -437,8 +446,8 @@ class CardFilters (object):
 
     @staticmethod
     def test_trait (card, values, options):
-        traits = card["traits"].lower()
-        return all(value.lower() in traits for value in values)
+        traits = [trait.strip().lower() for trait in card["traits"].split(".")]
+        return all(any(match_value(value, trait, options) for trait in traits) for value in values)
 
     @staticmethod
     def test_trait_isnt (card, values, options):
