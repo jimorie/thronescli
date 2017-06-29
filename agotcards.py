@@ -482,6 +482,38 @@ def print_brief_card (card, options):
     secho("")
 
 
+def print_markup (text):
+    for styled_text in parse_markup(text):
+        echo(styled_text, nl=False)
+    echo("")
+
+
+def parse_markup (text):
+    """Very simple markup parser. Does not support nested tags."""
+    kwargs = {}
+    beg = 0
+    while True:
+        end = text.find("<", beg)
+        if end >= 0:
+            yield style(text[beg:end], **kwargs)
+            beg = end
+            end = text.index(">", beg) + 1
+            tag = text[beg:end]
+            if tag == "<b>":
+                kwargs["bold"] = True
+            elif tag == "</b>":
+                kwargs.clear()
+            elif tag == "<i>":
+                kwargs["fg"] = "magenta"
+                kwargs["bold"] = True
+            elif tag == "</i>":
+                kwargs.clear()
+            beg = end
+        else:
+            yield style(text[beg:], **kwargs)
+            break
+
+
 def print_counts (counts, options, total):
     if not options["verbose"] and not options["count_only"]:
         echo("")
@@ -525,17 +557,6 @@ def count_card (card, options, counts):
                 counts[count_field][card[count_field]] += 1
 
 
-def match_value (value, card_value, options):
-    if card_value is None:
-        return False
-    if not options["case"]:
-        card_value = card_value.lower()
-    if options["exact"]:
-        return value == card_value
-    else:
-        return value in card_value
-
-
 class CardFilters (object):
     @classmethod
     def get_test (cls, option):
@@ -543,6 +564,17 @@ class CardFilters (object):
             return getattr(cls, "test_" + option)
         except AttributeError:
             return None
+
+    @staticmethod
+    def match_value (value, card_value, options):
+        if card_value is None:
+            return False
+        if not options["case"]:
+            card_value = card_value.lower()
+        if options["exact"]:
+            return value == card_value
+        else:
+            return value in card_value
 
     @staticmethod
     def test_cost (card, values, options):
@@ -578,7 +610,7 @@ class CardFilters (object):
 
     @staticmethod
     def test_name (card, value, options):
-        return match_value(value, card["name"], options)
+        return CardFilters.match_value(value, card["name"], options)
 
     @staticmethod
     def test_loyal (card, values, options):
@@ -614,16 +646,16 @@ class CardFilters (object):
 
     @staticmethod
     def test_text (card, values, options):
-        return all(match_value(value, card["text"], options) for value in values)
+        return all(CardFilters.match_value(value, card["text"], options) for value in values)
 
     @staticmethod
     def test_text_isnt (card, values, options):
-        return all(not match_value(value, card["text"], options) for value in values)
+        return all(not CardFilters.match_value(value, card["text"], options) for value in values)
 
     @staticmethod
     def test_trait (card, values, options):
         traits = [trait.strip().lower() for trait in card["traits"].split(".")]
-        return all(any(match_value(value, trait, options) for trait in traits) for value in values)
+        return all(any(CardFilters.match_value(value, trait, options) for trait in traits) for value in values)
 
     @staticmethod
     def test_trait_isnt (card, values, options):
@@ -637,38 +669,6 @@ class CardFilters (object):
     @staticmethod
     def test_unique (card, values, options):
         return card["is_unique"] == True
-
-
-def print_markup (text):
-    for styled_text in parse_markup(text):
-        echo(styled_text, nl=False)
-    echo("")
-
-
-def parse_markup (text):
-    """Very simple markup parser. Does not support nested tags."""
-    kwargs = {}
-    beg = 0
-    while True:
-        end = text.find("<", beg)
-        if end >= 0:
-            yield style(text[beg:end], **kwargs)
-            beg = end
-            end = text.index(">", beg) + 1
-            tag = text[beg:end]
-            if tag == "<b>":
-                kwargs["bold"] = True
-            elif tag == "</b>":
-                kwargs.clear()
-            elif tag == "<i>":
-                kwargs["fg"] = "magenta"
-                kwargs["bold"] = True
-            elif tag == "</i>":
-                kwargs.clear()
-            beg = end
-        else:
-            yield style(text[beg:], **kwargs)
-            break
 
 
 if __name__ == '__main__':
