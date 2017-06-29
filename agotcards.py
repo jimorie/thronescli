@@ -86,17 +86,17 @@ TEST_FALSE = [
     "--cost",
     type=int,
     multiple=True,
-    help="Return cards with given cost (inclusive)."
+    help="Find cards with given cost (inclusive)."
 )
 @option(
     "--cost-gt",
     type=int,
-    help="Return cards with greater than given cost."
+    help="Find cards with greater than given cost."
 )
 @option(
     "--cost-lt",
     type=int,
-    help="Return cards with lower than given cost."
+    help="Find cards with lower than given cost."
 )
 @option(
     "--count",
@@ -119,22 +119,22 @@ TEST_FALSE = [
     "--faction",
     "-f",
     multiple=True,
-    help="Return cards with given faction (inclusive)."
+    help="Find cards with given faction (inclusive)."
 )
 @option(
     "--faction-isnt",
     multiple=True,
-    help="Return cards with other than given faction (exclusive)."
+    help="Find cards with other than given faction (exclusive)."
 )
 @option(
     "--icon",
     multiple=True,
-    help="Return cards with given icon (exclusive)."
+    help="Find cards with given icon (exclusive)."
 )
 @option(
     "--icon-isnt",
     multiple=True,
-    help="Return cards without given icon (exclusive)."
+    help="Find cards without given icon (exclusive)."
 )
 @option(
     "--include-draft",
@@ -145,7 +145,7 @@ TEST_FALSE = [
 @option(
     "--name",
     "-n",
-    help="Return cards with matching name."
+    help="Find cards with matching name."
 )
 @option(
     "--name-only",
@@ -155,17 +155,17 @@ TEST_FALSE = [
 @option(
     "--loyal",
     is_flag=True,
-    help="Return loyal cards."
+    help="Find loyal cards."
 )
 @option(
     "--non-loyal",
     is_flag=True,
-    help="Return non-loyal cards."
+    help="Find non-loyal cards."
 )
 @option(
     "--non-unique",
     is_flag=True,
-    help="Return non-unique cards."
+    help="Find non-unique cards."
 )
 @option(
     "--sort",
@@ -175,48 +175,48 @@ TEST_FALSE = [
 @option(
     "--str",
     type=int,
-    help="Return cards with given strength."
+    help="Find cards with given strength."
 )
 @option(
     "--str-gt",
     type=int,
-    help="Return cards with greater than given strength."
+    help="Find cards with greater than given strength."
 )
 @option(
     "--str-lt",
     type=int,
-    help="Return cards with lower than given strength."
+    help="Find cards with lower than given strength."
 )
 @option(
     "--text",
     multiple=True,
-    help="Return cards with matching text (exclusive)."
+    help="Find cards with matching text (exclusive)."
 )
 @option(
     "--text-isnt",
     multiple=True,
-    help="Return cards without matching text (exclusive)."
+    help="Find cards without matching text (exclusive)."
 )
 @option(
     "--trait",
     multiple=True,
-    help="Return cards with matching trait (exclusive)."
+    help="Find cards with matching trait (exclusive)."
 )
 @option(
     "--trait-isnt",
     multiple=True,
-    help="Return cards without matching trait (exclusive)."
+    help="Find cards without matching trait (exclusive)."
 )
 @option(
     "--type",
     "-t",
     multiple=True,
-    help="Return cards with matching card type (inclusive)."
+    help="Find cards with matching card type (inclusive)."
 )
 @option(
     "--unique",
     is_flag=True,
-    help="Return unique cards."
+    help="Find unique cards."
 )
 @option(
     "--update",
