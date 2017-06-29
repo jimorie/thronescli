@@ -21,17 +21,22 @@ from click import (
 
 CARDS_FILE = join(dirname(realpath(__file__)), "cards.json")
 CARDS_URL = "http://thronesdb.com/api/public/cards/"
-FACTIONS = [
-    "baratheon",
-    "greyjoy",
-    "lannister",
-    "martell",
-    "neutral",
-    "stark",
-    "targaryen",
-    "thenightswatch",
-    "tyrell"
-]
+FACTIONS = {
+    "baratheon": {},
+    "greyjoy": {
+        "alias": ["gj"]
+    },
+    "lannister": {},
+    "martell": {},
+    "neutral": {},
+    "stark": {},
+    "targaryen": {},
+    "thenightswatch": {
+        "alias": ["nw", "night's watch", "the night's watch"],
+        "name": "The Night's Watch"
+    },
+    "tyrell": {}
+}
 ICONS = [
     "military",
     "intrigue",
@@ -233,17 +238,16 @@ def preprocess_options (search, options):
 
 
 def preprocess_faction (options):
-    def preprocess_faction_value (value):
-        value = value.lower()
-        value = value.replace("'", "")
-        value = value.replace(" ", "")
-        if value == "nw" or value.startswith("ni"):
-            value = "thenightswatch"
-        elif value == "gj":
-            value = "greyjoy"
-        return value
-    preprocess_field(options, "faction", FACTIONS, preprocess_faction_value)
-    preprocess_field(options, "faction_isnt", FACTIONS, preprocess_faction_value)
+    alias_mapping = {
+        alias: faction_db_key
+        for faction_db_key, data in FACTIONS.iteritems()
+        for alias in data.get("alias", []) + [faction_db_key]
+    }
+    def postprocess_faction_value (value):
+        return alias_mapping[value]
+    aliases = alias_mapping.keys()
+    preprocess_field(options, "faction", aliases, postprocess_value=postprocess_faction_value)
+    preprocess_field(options, "faction_isnt", aliases, postprocess_value=postprocess_faction_value)
 
 
 def preprocess_icon (options):
@@ -255,13 +259,12 @@ def preprocess_sort (options):
     preprocess_field(options, "sort", SORT_KEYS, postprocess_value=get_field_db_key)
 
 
-def preprocess_field (options, field, candidates, preprocess_value=None, postprocess_value=None):
+def preprocess_field (options, field, candidates, postprocess_value=None):
     if options[field]:
         values = list(options[field])
         for i in xrange(len(values)):
             value = values[i]
-            if preprocess_value:
-                value = preprocess_value(value)
+            value = value.lower()
             value = get_single_match(value, candidates)
             if value is None:
                 raise ClickException("Bad {}: {}".format(
@@ -280,6 +283,10 @@ def get_field_name (field):
 
 def get_field_db_key (field):
     return DB_KEY_MAPPING.get(field, field)
+
+
+def get_faction_name (faction_code):
+    return FACTIONS[faction_code].get("name", faction_code.title())
 
 
 def get_single_match (value, candidates):
