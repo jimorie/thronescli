@@ -368,10 +368,11 @@ def get_faction_name (faction_code):
 
 
 def check_options (options):
-    try:
-        return not test_card(None, options)
-    except TypeError:
-        return True
+    for option, value in options.iteritems():
+        test = CardFilters.get_test(option)
+        if test and value:
+            return True
+    return False
 
 
 def load_cards (options):
@@ -506,13 +507,9 @@ def filter_cards (cards, options):
 
 def test_card (card, options):
     for option, value in options.iteritems():
-        try:
-            test = getattr(CardFilters, "test_" + option)
-        except AttributeError:
-            test = None
+        test = CardFilters.get_test(option)
         if test and (value or option in TEST_FALSE):
             if not test(card, value, options):
-
                 return False
     return True
 
@@ -540,6 +537,13 @@ def match_value (value, card_value, options):
 
 
 class CardFilters (object):
+    @classmethod
+    def get_test (cls, option):
+        try:
+            return getattr(cls, "test_" + option)
+        except AttributeError:
+            return None
+
     @staticmethod
     def test_cost (card, values, options):
         return any(card["cost"] == value for value in values)
