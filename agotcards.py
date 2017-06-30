@@ -23,6 +23,15 @@ from click import (
 
 CARDS_FILE = join(dirname(realpath(__file__)), "cards.json")
 CARDS_URL = "http://thronesdb.com/api/public/cards/"
+CARD_TYPES = [
+    "agenda",
+    "attachment",
+    "character",
+    "event",
+    "location",
+    "plot",
+    "title"
+]
 FACTIONS = {
     "baratheon": {},
     "greyjoy": {
@@ -125,7 +134,9 @@ TEST_FALSE = [
     "--faction",
     "-f",
     multiple=True,
-    help="Find cards with given faction (inclusive). Possible factions are: {}.".format(", ".join(sorted(FACTION_ALIASES.keys())))
+    help="Find cards with given faction (inclusive). Possible factions are: {}.".format(
+        ", ".join(sorted(FACTION_ALIASES.keys()))
+    )
 )
 @option(
     "--faction-isnt",
@@ -223,7 +234,7 @@ TEST_FALSE = [
     "--type",
     "-t",
     multiple=True,
-    help="Find cards with matching card type (inclusive)."
+    help="Find cards with matching card type (inclusive). Possible types are: {}.".format(", ".join(CARD_TYPES))
 )
 @option(
     "--unique",
@@ -280,6 +291,7 @@ def preprocess_options (search, options):
     preprocess_icon(options)
     preprocess_sort(options)
     preprocess_count(options)
+    preprocess_type(options)
 
 
 def preprocess_search (options, search):
@@ -340,6 +352,10 @@ def preprocess_sort (options):
 
 def preprocess_count (options):
     preprocess_field(options, "count", COUNT_KEYS, postprocess_value=get_field_db_key)
+
+
+def preprocess_type (options):
+    preprocess_field(options, "type", CARD_TYPES)
 
 
 def preprocess_field (options, field, candidates, postprocess_value=None):
