@@ -41,6 +41,11 @@ FACTIONS = {
     },
     "tyrell": {}
 }
+FACTION_ALIASES = {
+    alias: faction
+    for faction, data in FACTIONS.iteritems()
+    for alias in data.get("alias", []) + [faction]
+}
 ICONS = [
     "military",
     "intrigue",
@@ -102,7 +107,7 @@ TEST_FALSE = [
 @option(
     "--count",
     multiple=True,
-    help="Print card count breakdown for given field."
+    help="Print card count breakdown for given field. Possible fields are: {}.".format(", ".join(COUNT_KEYS))
 )
 @option(
     "--count-only",
@@ -120,7 +125,7 @@ TEST_FALSE = [
     "--faction",
     "-f",
     multiple=True,
-    help="Find cards with given faction (inclusive)."
+    help="Find cards with given faction (inclusive). Possible factions are: {}.".format(", ".join(sorted(FACTION_ALIASES.keys())))
 )
 @option(
     "--faction-isnt",
@@ -130,7 +135,7 @@ TEST_FALSE = [
 @option(
     "--icon",
     multiple=True,
-    help="Find cards with given icon (exclusive)."
+    help="Find cards with given icon (exclusive). Possible icons are: {}.".format(", ".join(ICONS))
 )
 @option(
     "--icon-isnt",
@@ -177,7 +182,7 @@ TEST_FALSE = [
 @option(
     "--sort",
     multiple=True,
-    help="Sort returned cards by the given field."
+    help="Sort resulting cards by the given field. Possible fields are: {}.".format(", ".join(SORT_KEYS))
 )
 @option(
     "--str",
@@ -317,14 +322,9 @@ def preprocess_case (options):
 
 
 def preprocess_faction (options):
-    alias_mapping = {
-        alias: faction_db_key
-        for faction_db_key, data in FACTIONS.iteritems()
-        for alias in data.get("alias", []) + [faction_db_key]
-    }
     def postprocess_faction_value (value):
-        return alias_mapping[value]
-    aliases = alias_mapping.keys()
+        return FACTION_ALIASES[value]
+    aliases = FACTION_ALIASES.keys()
     preprocess_field(options, "faction", aliases, postprocess_value=postprocess_faction_value)
     preprocess_field(options, "faction_isnt", aliases, postprocess_value=postprocess_faction_value)
 
