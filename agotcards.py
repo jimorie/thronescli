@@ -5,6 +5,7 @@ from json import load
 from operator import itemgetter
 from os import remove
 from os.path import dirname, join, realpath, isfile
+from re import compile as re_compile, IGNORECASE
 from sys import argv
 from urllib import urlretrieve
 
@@ -168,6 +169,12 @@ TEST_FALSE = [
     help="Find non-unique cards."
 )
 @option(
+    "--regex",
+    "-r",
+    is_flag=True,
+    help="Use regular expression searching."
+)
+@option(
     "--sort",
     multiple=True,
     help="Sort returned cards by the given field."
@@ -262,6 +269,7 @@ def main (ctx, search, **options):
 
 def preprocess_options (search, options):
     preprocess_search(options, search)
+    preprocess_regex(options)
     preprocess_case(options)
     preprocess_faction(options)
     preprocess_icon(options)
@@ -273,12 +281,35 @@ def preprocess_search (options, search):
     options["search"] = " ".join(search) if search else None
 
 
+def preprocess_regex (options):
+    flags = IGNORECASE if not options["case"] else 0
+    if options["regex"]:
+        if options["search"]:
+            options["search"] = re_compile(options["search"], flags=flags)
+        if options["name"]:
+            options["name"] = re_compile(options["name"], flags=flags)
+        if options["trait"]:
+            options["trait"] = tuple(
+                re_compile(value, flags=flags) for value in options["trait"]
+            )
+        if options["text"]:
+            options["text"] = tuple(
+                re_compile(value, flags=flags) for value in options["text"]
+            )
+        if options["text_isnt"]:
+            options["text_isnt"] = tuple(
+                re_compile(value, flags=flags) for value in options["text_isnt"]
+            )
+
+
 def preprocess_case (options):
-    if not options["case"]:
+    if not options["case"] and not options["regex"]:
         if options["search"]:
             options["search"] = options["search"].lower()
         if options["name"]:
             options["name"] = options["name"].lower()
+        if options["trait"]:
+            options["trait"] = tuple(value.lower() for value in options["trait"])
         if options["text"]:
             options["text"] = tuple(value.lower() for value in options["text"])
         if options["text_isnt"]:
@@ -412,12 +443,16 @@ class CardFilters (object):
     def match_value (value, card_value, options):
         if card_value is None:
             return False
-        if not options["case"]:
-            card_value = card_value.lower()
-        if options["exact"]:
-            return value == card_value
+        if hasattr(value, "search"):
+            match = value.search(card_value)
+            if options["exact"]:
+                return match is not None and match.start() == 0 and match.end() == len(card_value)
+            else:
+                return match is not None
         else:
-            return value in card_value
+            if not options["case"]:
+                card_value = card_value.lower()
+            return value == card_value if options["exact"] else value in card_value
 
     @staticmethod
     def test_cost (card, values, options):
@@ -497,13 +532,13 @@ class CardFilters (object):
 
     @staticmethod
     def test_trait (card, values, options):
-        traits = [trait.strip().lower() for trait in card["traits"].split(".")]
+        traits = [trait.strip() for trait in card["traits"].split(".")]
         return all(any(CardFilters.match_value(value, trait, options) for trait in traits) for value in values)
 
     @staticmethod
     def test_trait_isnt (card, values, options):
-        traits = card["traits"].lower()
-        return all(value.lower() not in traits for value in values)
+        traits = [trait.strip() for trait in card["traits"].split(".")]
+        return all(not any(CardFilters.match_value(value, trait, options) for trait in traits) for value in values)
 
     @staticmethod
     def test_type (card, values, options):
