@@ -95,7 +95,7 @@ TEST_FALSE = [
     "--case",
     is_flag=True,
     default=False,
-    help="Use case sensitive searching (default is not to)."
+    help="Use case sensitive matching."
 )
 @option(
     "--cost",
@@ -128,7 +128,7 @@ TEST_FALSE = [
     "--exact",
     is_flag=True,
     default=False,
-    help="Use exact matching (default is to use partial matching)."
+    help="Use exact matching."
 )
 @option(
     "--faction",
@@ -157,7 +157,7 @@ TEST_FALSE = [
     "--include-draft",
     is_flag=True,
     default=False,
-    help="Include cards only legal in draft format (default is not to)."
+    help="Include cards only legal in draft format."
 )
 @option(
     "--name",
@@ -167,7 +167,7 @@ TEST_FALSE = [
 @option(
     "--name-only",
     is_flag=True,
-    help="Print only the card name."
+    help="Print only card names."
 )
 @option(
     "--loyal",
@@ -188,7 +188,7 @@ TEST_FALSE = [
     "--regex",
     "-r",
     is_flag=True,
-    help="Use regular expression searching."
+    help="Use regular expression matching."
 )
 @option(
     "--sort",
@@ -260,7 +260,10 @@ def main (ctx, search, **options):
     A simple command line search tool for A Game of Thrones LCG.
 
     The default search argument matches cards against their name, text or
-    traits. See --help for more advanced search options.
+    traits. See below for more options.
+
+    Options marked with inclusive or exclusive can be repeated to further
+    include or exclude cards, respectively.
     """
     preprocess_options(search, options)
     if options["update"]:
@@ -366,7 +369,7 @@ def preprocess_field (options, field, candidates, postprocess_value=None):
             value = value.lower()
             value = get_single_match(value, candidates)
             if value is None:
-                raise ClickException("Bad {} argument: {}".format(
+                raise ClickException("--{} option got invalid argument: {}".format(
                     get_field_name(field),
                     values[i]
                 ))
