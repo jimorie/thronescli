@@ -64,7 +64,9 @@ SORT_KEYS = [
     "cost",
     "faction",
     "name",
-    "str"
+    "str",
+    "traits",
+    "type"
 ]
 COUNT_KEYS = [
     "cost",
