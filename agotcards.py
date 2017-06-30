@@ -267,7 +267,7 @@ def main (ctx, search, **options):
         update_cards()
         echo("Card database updated. Thank you thronesdb.com!")
         return
-    if not check_options(options):
+    if len(argv) == 1:
         echo(ctx.get_usage())
         return
     cards = load_cards(options)
@@ -396,14 +396,6 @@ def get_field_db_key (field):
 
 def get_faction_name (faction_code):
     return FACTIONS[faction_code].get("name", "House {}".format(faction_code.title()))
-
-
-def check_options (options):
-    for option, value in options.iteritems():
-        test = CardFilters.get_test(option)
-        if test and value:
-            return True
-    return False
 
 
 def load_cards (options):
