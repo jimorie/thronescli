@@ -18,5 +18,8 @@ setup(
     classifiers = [],
     install_requires = [
         'click'
+    ],
+    console_scripts = [
+        'thronescli = thronescli:main'
     ]
 )
