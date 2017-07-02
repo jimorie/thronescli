@@ -1,4 +1,7 @@
+# -*- coding: utf-8 -*-
+
 from distutils.core import setup
+
 setup(
     name = 'thronescli',
     packages = ['thronescli'], # this must be the same as the name above
