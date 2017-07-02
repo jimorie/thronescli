@@ -4,7 +4,7 @@
 from collections import defaultdict
 from json import load
 from operator import itemgetter
-from os import remove
+from os import mkdir, remove
 from os.path import dirname, join, realpath, isfile
 from re import compile as re_compile, IGNORECASE
 from sys import argv
@@ -15,6 +15,7 @@ from click import (
     argument,
     command,
     echo,
+    get_app_dir,
     option,
     pass_context,
     secho,
@@ -22,7 +23,6 @@ from click import (
 )
 
 
-CARDS_FILE = join(dirname(realpath(__file__)), "cards.json")
 CARDS_URL = "http://thronesdb.com/api/public/cards/"
 CARD_TYPES = [
     "agenda",
@@ -406,18 +406,28 @@ def get_faction_name (faction_code):
 
 
 def load_cards (options):
-    if not isfile(CARDS_FILE):
+    cards_file = get_cards_file()
+    if not isfile(cards_file):
         update_cards()
-    with open(CARDS_FILE, "r") as f:
+    with open(cards_file, "r") as f:
         return load(f)
 
 
 def update_cards ():
+    cards_file = get_cards_file()
     try:
-        remove(CARDS_FILE)
+        remove(cards_file)
     except OSError:
         pass
-    urlretrieve(CARDS_URL, CARDS_FILE)
+    urlretrieve(CARDS_URL, cards_file)
+
+
+def get_cards_file ():
+    try:
+        mkdir(get_app_dir("thronescli"))
+    except OSError:
+        pass
+    return join(get_app_dir("thronescli"), "cards.json")
 
 
 def filter_cards (cards, options):
