@@ -73,6 +73,7 @@ COUNT_KEYS = [
     "faction",
     "icon",
     "str",
+    "traits",
     "type"
 ]
 DB_KEY_MAPPING = {
@@ -440,6 +441,10 @@ def count_card (card, options, counts):
                 for icon in ("military", "intrigue", "power"):
                     if card["is_" + icon]:
                         counts[count_field][icon] += 1
+            elif count_field == "traits":
+                for trait in card["traits"].split("."):
+                    if trait:
+                        counts[count_field][trait.strip()] += 1
             elif card[count_field]:
                 counts[count_field][card[count_field]] += 1
 
