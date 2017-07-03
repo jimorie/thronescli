@@ -899,9 +899,14 @@ def print_counts (counts, options, total):
         items = list(count_data.items())
         items.sort(key=itemgetter(1), reverse=True)
         secho("{} counts".format(get_pretty_name(count_field)), fg="green", bold=True)
+        fill = 0
+        for i in range(len(items)):
+            items[i] = (get_pretty_name(items[i][0], meta=count_field) + ": ", items[i][1])
+            fill = max(fill, len(items[i][0]))
         for count_key, count_val in items:
-            secho(get_pretty_name(count_key, meta=count_field) + ":", bold=True, nl=False)
-            echo(" " + str(count_val))
+            secho(count_key, bold=True, nl=False)
+            echo(" " * (fill - len(count_key)), nl=False)
+            echo(str(count_val))
         echo("")
     secho("Total count: ", fg="green", bold=True, nl=False)
     echo(str(total))
