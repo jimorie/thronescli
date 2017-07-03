@@ -666,8 +666,7 @@ def print_verbose_fields (card, fields):
 
 
 def print_brief_card (card, options):
-    secho(card["name"], fg="cyan", bold=True, nl=False)
-    secho(":", nl=False)
+    secho(card["name"] + ":", fg="cyan", bold=True, nl=False)
     if card["is_unique"] is True:
         secho(" Unique.", nl=False)
     secho(" " + card["faction_name"] + ".", nl=False)
@@ -734,12 +733,13 @@ def print_counts (counts, options, total):
             items[i] = (get_pretty_name(items[i][0], meta=count_field) + ":", items[i][1])
         fill = max(len(item[0]) for item in items)
         items.sort(key=itemgetter(1), reverse=True)
-        secho("{} counts:".format(get_pretty_name(count_field)), fg="green", bold=True)
+        secho("{} counts".format(get_pretty_name(count_field)), fg="green", bold=True)
         for count_key, count_val in items:
-            secho("  {count_key: <{fill}} ".format(count_key=count_key, fill=fill), bold=True, nl=False)
+            secho("{count_key: <{fill}} ".format(count_key=count_key, fill=fill), bold=True, nl=False)
             echo(str(count_val))
         echo("")
-    secho("Total count: {}".format(total), fg="green", bold=True)
+    secho("Total count: ", fg="green", bold=True, nl=False)
+    echo(str(total))
 
 
 def get_pretty_name (field, meta=None):
