@@ -8,7 +8,12 @@ from os import mkdir, remove
 from os.path import dirname, join, realpath, isfile
 from re import compile as re_compile, IGNORECASE
 from sys import argv
-from urllib import urlretrieve
+
+# Try import py3 libs first, fall back to py2
+try:
+    from urllib.request import urlretrieve
+except ImportError:
+    from urllib import urlretrieve
 
 from click import (
     ClickException,
@@ -56,7 +61,7 @@ FACTIONS = {
 }
 FACTION_ALIASES = {
     alias: faction
-    for faction, data in FACTIONS.iteritems()
+    for faction, data in FACTIONS.items()
     for alias in data.get("alias", []) + [faction]
 }
 ICONS = [
@@ -379,7 +384,7 @@ def preprocess_type (options):
 def preprocess_field (options, field, candidates, postprocess_value=None):
     if options[field]:
         values = list(options[field])
-        for i in xrange(len(values)):
+        for i in range(len(values)):
             value = values[i]
             value = value.lower()
             value = get_single_match(value, candidates)
@@ -449,7 +454,7 @@ def filter_cards (cards, options):
 
 
 def test_card (card, options):
-    for option, value in options.iteritems():
+    for option, value in options.items():
         test = CardFilters.get_test(option)
         if test and (value or type(value) is int or option in TEST_FALSE):
             if not test(card, value, options):
@@ -727,9 +732,9 @@ def parse_markup (text):
 def print_counts (counts, options, total):
     if not options["verbose"] and not options["count_only"]:
         echo("")
-    for count_field, count_data in counts.iteritems():
-        items = count_data.items()
-        for i in xrange(len(items)):
+    for count_field, count_data in counts.items():
+        items = list(count_data.items())
+        for i in range(len(items)):
             items[i] = (get_pretty_name(items[i][0], meta=count_field) + ":", items[i][1])
         fill = max(len(item[0]) for item in items)
         items.sort(key=itemgetter(1), reverse=True)
