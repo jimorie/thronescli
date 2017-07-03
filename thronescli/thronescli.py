@@ -78,6 +78,7 @@ SORT_KEYS = [
     "initiative",
     "name",
     "reserve",
+    "set",
     "str",
     "traits",
     "type"
@@ -93,6 +94,7 @@ COUNT_KEYS = [
     "loyal",
     "name",
     "reserve",
+    "set",
     "str",
     "trait",
     "type",
@@ -100,6 +102,7 @@ COUNT_KEYS = [
 ]
 DB_KEY_MAPPING = {
     "faction": "faction_code",
+    "set"    : "pack_name",
     "str"    : "strength",
     "type"   : "type_code"
 }
@@ -290,6 +293,11 @@ TEST_FALSE = [
     help="Use regular expression matching."
 )
 @option(
+    "--set",
+    multiple=True,
+    help="Find cards from matching expansion sets (inclusive)."
+)
+@option(
     "--sort",
     multiple=True,
     help="Sort resulting cards by the given field. Possible fields are: {}.".format(", ".join(SORT_KEYS))
@@ -444,6 +452,8 @@ def preprocess_case (options):
             options["text_isnt"] = tuple(value.lower() for value in options["text_isnt"])
         if options["illustrator"]:
             options["illustrator"] = tuple(value.lower() for value in options["illustrator"])
+        if options["set"]:
+            options["set"] = tuple(value.lower() for value in options["set"])
 
 
 def preprocess_faction (options):
@@ -703,6 +713,13 @@ class CardFilters (object):
             CardFilters.test_name(card, value, options)
             or CardFilters.test_text(card, (value,), options)
             or CardFilters.test_trait(card, (value,), options)
+        )
+
+    @staticmethod
+    def test_set (card, values, options):
+        return (
+            any(CardFilters.match_value(value, card["pack_name"], options) for value in values)
+            or any(CardFilters.match_value(value, card["pack_code"], options) for value in values)
         )
 
     @staticmethod
