@@ -283,13 +283,11 @@ TEST_FALSE = [
 @pass_context
 def main (ctx, search, **options):
     """
-    A simple command line search tool for A Game of Thrones LCG.
+    A command line interface for the thronesdb.com card database for A Game of Thrones LCG 2nd Ed.
 
-    The default search argument matches cards against their name, text or
-    traits. See below for more options.
+    The default search argument matches cards against their name, text or traits. See below for more options.
 
-    Options marked with inclusive or exclusive can be repeated to further
-    include or exclude cards, respectively.
+    Options marked with inclusive or exclusive can be repeated to further include or exclude cards, respectively.
     """
     preprocess_options(search, options)
     if options["version"]:
