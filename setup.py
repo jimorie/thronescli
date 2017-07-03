@@ -7,7 +7,7 @@ setup(
     name = 'thronescli',
     packages = ['thronescli'], # this must be the same as the name above
     version = version,
-    description = 'A command line interface for looking up cards for A Game of Thrones LCG 2n Ed.',
+    description = 'A command line interface for the thronesdb.com card database.',
     author = 'Petter Nyström',
     author_email = 'jimorie@gmail.com',
     url = 'https://github.com/jimorie/thronescli', # use the URL to the github repo
