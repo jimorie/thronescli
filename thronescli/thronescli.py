@@ -295,7 +295,7 @@ TEST_FALSE = [
 @option(
     "--set",
     multiple=True,
-    help="Find cards from matching expansion sets (inclusive)."
+    help="Find cards from matching expansion sets (inclusive). Implies --include-draft."
 )
 @option(
     "--sort",
@@ -677,7 +677,7 @@ class CardFilters (object):
 
     @staticmethod
     def test_include_draft (card, value, options):
-        return value or card["pack_code"] not in DRAFT_PACKS
+        return options["set"] or value or card["pack_code"] not in DRAFT_PACKS
 
     @staticmethod
     def test_name (card, value, options):
