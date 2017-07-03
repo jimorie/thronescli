@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup
+from thronescli.thronescli import __version__ as version
 
 setup(
     name = 'thronescli',
     packages = ['thronescli'], # this must be the same as the name above
-    version = '0.2.4',
+    version = version,
     description = 'A command line interface for looking up cards for A Game of Thrones LCG 2n Ed.',
     author = 'Petter Nyström',
     author_email = 'jimorie@gmail.com',
     url = 'https://github.com/jimorie/thronescli', # use the URL to the github repo
-    download_url = 'https://github.com/jimorie/thronescli/archive/0.2.4.tar.gz', # I'll explain this in a second
+    download_url = 'https://github.com/jimorie/thronescli/archive/{}.tar.gz'.format(version),
     keywords = ['game of thrones', 'thrones', 'thronesdb.com'], # arbitrary keywords
     classifiers = [],
     install_requires = [

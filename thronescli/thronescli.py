@@ -23,6 +23,9 @@ from click import (
 )
 
 
+__version__ = "0.2.4"
+
+
 CARDS_URL = "http://thronesdb.com/api/public/cards/"
 CARD_TYPES = [
     "agenda",
