@@ -28,7 +28,7 @@ from click import (
 )
 
 
-__version__ = "0.4"
+__version__ = "0.5"
 
 
 CARDS_URL = "http://thronesdb.com/api/public/cards/"
