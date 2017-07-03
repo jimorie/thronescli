@@ -558,7 +558,7 @@ def count_card (card, options, counts):
                     counts[count_field][count_field.title()] += 1
                 else:
                     counts[count_field]["Non-" + count_field.title()] += 1
-            elif card[count_field]:
+            elif card[count_field] or type(card[count_field]) is int:
                 counts[count_field][card[count_field]] += 1
 
 
