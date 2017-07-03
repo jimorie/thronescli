@@ -74,6 +74,7 @@ SORT_KEYS = [
     "claim",
     "faction",
     "income",
+    "illustrator",
     "initiative",
     "name",
     "reserve",
@@ -86,6 +87,7 @@ COUNT_KEYS = [
     "claim",
     "faction",
     "icon",
+    "illustrator",
     "income",
     "initiative",
     "loyal",
@@ -180,6 +182,11 @@ TEST_FALSE = [
     "--faction-isnt",
     multiple=True,
     help="Find cards with other than given faction (exclusive)."
+)
+@option(
+    "--illustrator",
+    multiple=True,
+    help="Find cards by the given illustrator (inclusive)."
 )
 @option(
     "--income",
@@ -434,6 +441,8 @@ def preprocess_case (options):
             options["text"] = tuple(value.lower() for value in options["text"])
         if options["text_isnt"]:
             options["text_isnt"] = tuple(value.lower() for value in options["text_isnt"])
+        if options["illustrator"]:
+            options["illustrator"] = tuple(value.lower() for value in options["illustrator"])
 
 
 def preprocess_faction (options):
@@ -640,6 +649,10 @@ class CardFilters (object):
     @staticmethod
     def test_initiative_lt (card, value, options):
         return type(card["initiative"]) is int and card["initiative"] < value
+
+    @staticmethod
+    def test_illustrator (card, values, options):
+        return any(CardFilters.match_value(value, card["illustrator"], options) for value in values)
 
     @staticmethod
     def test_icon (card, values, options):
@@ -866,14 +879,11 @@ def print_counts (counts, options, total):
         echo("")
     for count_field, count_data in counts.items():
         items = list(count_data.items())
-        for i in range(len(items)):
-            items[i] = (get_pretty_name(items[i][0], meta=count_field) + ":", items[i][1])
-        fill = max(len(item[0]) for item in items)
         items.sort(key=itemgetter(1), reverse=True)
         secho("{} counts".format(get_pretty_name(count_field)), fg="green", bold=True)
         for count_key, count_val in items:
-            secho("{count_key: <{fill}} ".format(count_key=count_key, fill=fill), bold=True, nl=False)
-            echo(str(count_val))
+            secho(get_pretty_name(count_key, meta=count_field) + ":", bold=True, nl=False)
+            echo(" " + str(count_val))
         echo("")
     secho("Total count: ", fg="green", bold=True, nl=False)
     echo(str(total))
