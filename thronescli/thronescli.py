@@ -76,9 +76,11 @@ COUNT_KEYS = [
     "cost",
     "faction",
     "icon",
+    "loyal",
     "str",
     "traits",
-    "type"
+    "type",
+    "unique"
 ]
 DB_KEY_MAPPING = {
     "faction": "faction_code",
@@ -466,6 +468,11 @@ def count_card (card, options, counts):
                 for trait in card["traits"].split("."):
                     if trait:
                         counts[count_field][trait.strip()] += 1
+            elif count_field in ["unique", "loyal"]:
+                if card["is_" + count_field]:
+                    counts[count_field][count_field.title()] += 1
+                else:
+                    counts[count_field]["Non-" + count_field.title()] += 1
             elif card[count_field]:
                 counts[count_field][card[count_field]] += 1
 
