@@ -673,8 +673,10 @@ def print_verbose_fields (card, fields):
                 echo("Yes" if value else "No")
             elif field in ["flavor"]:
                 print_markup(value)
+            elif type(value) is int:
+                echo(str(value))
             else:
-                echo(unicode(value))
+                echo(value)
 
 
 def print_brief_card (card, options):
