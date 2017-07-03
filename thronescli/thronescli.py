@@ -5,7 +5,7 @@ from collections import defaultdict
 from json import load
 from operator import itemgetter
 from os import mkdir, remove
-from os.path import dirname, join, realpath, isfile
+from os.path import join, isfile
 from re import compile as re_compile, IGNORECASE
 from sys import argv
 
@@ -534,9 +534,9 @@ def filter_cards (cards, options):
 
 
 def test_card (card, options):
-    for option, value in options.items():
-        test = CardFilters.get_test(option)
-        if test and (value or type(value) is int or option in TEST_FALSE):
+    for option_name, value in options.items():
+        test = CardFilters.get_test(option_name)
+        if test and (value or type(value) is int or option_name in TEST_FALSE):
             if not test(card, value, options):
                 return False
     return True
@@ -661,15 +661,15 @@ class CardFilters (object):
 
     @staticmethod
     def test_loyal (card, values, options):
-        return card["is_loyal"] == True
+        return card["is_loyal"] is True
 
     @staticmethod
     def test_non_loyal (card, values, options):
-        return card["is_loyal"] == False
+        return card["is_loyal"] is False
 
     @staticmethod
     def test_non_unique (card, values, options):
-        return card["is_unique"] == False
+        return card["is_unique"] is False
 
     @staticmethod
     def test_reserve (card, values, options):
@@ -723,7 +723,9 @@ class CardFilters (object):
     def test_trait_isnt (card, values, options):
         traits = [trait.strip() for trait in card["traits"].split(".")]
         any_or_all = any if options["inclusive"] else all
-        return any_or_all(not any(CardFilters.match_value(value, trait, options) for trait in traits) for value in values)
+        return any_or_all(
+            not any(CardFilters.match_value(value, trait, options) for trait in traits) for value in values
+        )
 
     @staticmethod
     def test_type (card, values, options):
@@ -731,7 +733,7 @@ class CardFilters (object):
 
     @staticmethod
     def test_unique (card, values, options):
-        return card["is_unique"] == True
+        return card["is_unique"] is True
 
 
 def sort_cards (cards, options):
