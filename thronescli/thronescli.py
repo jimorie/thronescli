@@ -130,13 +130,13 @@ TEST_FALSE = [
 @option(
     "--count",
     multiple=True,
-    help="Print card count breakdown for given field. Possible fields are: {}.".format(", ".join(COUNT_KEYS))
+    help="Show card count breakdown for given field. Possible fields are: {}.".format(", ".join(COUNT_KEYS))
 )
 @option(
     "--count-only",
     is_flag=True,
     default=False,
-    help="Print card count breakdowns only."
+    help="Show card count breakdowns only."
 )
 @option(
     "--exact",
@@ -187,7 +187,7 @@ TEST_FALSE = [
 @option(
     "--name-only",
     is_flag=True,
-    help="Print only card names."
+    help="Show only card names."
 )
 @option(
     "--loyal",
@@ -272,13 +272,13 @@ TEST_FALSE = [
     "-v",
     is_flag=True,
     default=False,
-    help="Print verbose card data."
+    help="Show verbose card data."
 )
 @option(
     "--version",
     is_flag=True,
     default=False,
-    help="Print the thronescli version: {}.".format(__version__)
+    help="Show the thronescli version: {}.".format(__version__)
 )
 @pass_context
 def main (ctx, search, **options):
@@ -288,6 +288,8 @@ def main (ctx, search, **options):
     The default search argument matches cards against their name, text or traits. See below for more options.
 
     Options marked with inclusive or exclusive can be repeated to further include or exclude cards, respectively.
+
+    For help and bug reports visit the project on GitHub: https://github.com/jimorie/thronescli
     """
     preprocess_options(search, options)
     if options["version"]:
