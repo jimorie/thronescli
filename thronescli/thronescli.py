@@ -71,17 +71,25 @@ ICONS = [
 ]
 SORT_KEYS = [
     "cost",
+    "claim",
     "faction",
+    "income",
+    "initiative",
     "name",
+    "reserve",
     "str",
     "traits",
     "type"
 ]
 COUNT_KEYS = [
     "cost",
+    "claim",
     "faction",
     "icon",
+    "income",
+    "initiative",
     "loyal",
+    "reserve",
     "str",
     "trait",
     "type",
@@ -110,6 +118,22 @@ TEST_FALSE = [
     is_flag=True,
     default=False,
     help="Use case sensitive matching."
+)
+@option(
+    "--claim",
+    type=int,
+    multiple=True,
+    help="Find cards with given claim (inclusive)."
+)
+@option(
+    "--claim-gt",
+    type=int,
+    help="Find cards with greater than given claim."
+)
+@option(
+    "--claim-lt",
+    type=int,
+    help="Find cards with lower than given claim."
 )
 @option(
     "--cost",
@@ -158,6 +182,38 @@ TEST_FALSE = [
     help="Find cards with other than given faction (exclusive)."
 )
 @option(
+    "--income",
+    type=int,
+    multiple=True,
+    help="Find cards with given income (inclusive)."
+)
+@option(
+    "--income-gt",
+    type=int,
+    help="Find cards with greater than given income."
+)
+@option(
+    "--income-lt",
+    type=int,
+    help="Find cards with lower than given income."
+)
+@option(
+    "--initiative",
+    type=int,
+    multiple=True,
+    help="Find cards with given initiative (inclusive)."
+)
+@option(
+    "--initiative-gt",
+    type=int,
+    help="Find cards with greater than given initiative."
+)
+@option(
+    "--initiative-lt",
+    type=int,
+    help="Find cards with lower than given initiative."
+)
+@option(
     "--icon",
     multiple=True,
     help="Find cards with given icon (exclusive). Possible icons are: {}.".format(", ".join(ICONS))
@@ -203,6 +259,21 @@ TEST_FALSE = [
     "--non-unique",
     is_flag=True,
     help="Find non-unique cards."
+)
+@option(
+    "--reserve",
+    type=int,
+    help="Find cards with given reserve."
+)
+@option(
+    "--reserve-gt",
+    type=int,
+    help="Find cards with greater than given reserve."
+)
+@option(
+    "--reserve-lt",
+    type=int,
+    help="Find cards with lower than given reserve."
 )
 @option(
     "--regex",
@@ -515,6 +586,18 @@ class CardFilters (object):
             return value == card_value if options["exact"] else value in card_value
 
     @staticmethod
+    def test_claim (card, values, options):
+        return any(card["claim"] == value for value in values)
+
+    @staticmethod
+    def test_claim_gt (card, value, options):
+        return type(card["claim"]) is int and card["claim"] > value
+
+    @staticmethod
+    def test_claim_lt (card, value, options):
+        return type(card["claim"]) is int and card["claim"] < value
+
+    @staticmethod
     def test_cost (card, values, options):
         return any(card["cost"] == value for value in values)
 
@@ -533,6 +616,30 @@ class CardFilters (object):
     @staticmethod
     def test_faction_isnt (card, values, options):
         return all(not card["faction_code"].startswith(value.lower()) for value in values)
+
+    @staticmethod
+    def test_income (card, values, options):
+        return any(card["income"] == value for value in values)
+
+    @staticmethod
+    def test_income_gt (card, value, options):
+        return type(card["income"]) is int and card["income"] > value
+
+    @staticmethod
+    def test_income_lt (card, value, options):
+        return type(card["income"]) is int and card["income"] < value
+
+    @staticmethod
+    def test_initiative (card, values, options):
+        return any(card["initiative"] == value for value in values)
+
+    @staticmethod
+    def test_initiative_gt (card, value, options):
+        return type(card["initiative"]) is int and card["initiative"] > value
+
+    @staticmethod
+    def test_initiative_lt (card, value, options):
+        return type(card["initiative"]) is int and card["initiative"] < value
 
     @staticmethod
     def test_icon (card, values, options):
@@ -563,6 +670,18 @@ class CardFilters (object):
     @staticmethod
     def test_non_unique (card, values, options):
         return card["is_unique"] == False
+
+    @staticmethod
+    def test_reserve (card, values, options):
+        return any(card["reserve"] == value for value in values)
+
+    @staticmethod
+    def test_reserve_gt (card, value, options):
+        return type(card["reserve"]) is int and card["reserve"] > value
+
+    @staticmethod
+    def test_reserve_lt (card, value, options):
+        return type(card["reserve"]) is int and card["reserve"] < value
 
     @staticmethod
     def test_search (card, value, options):
@@ -641,7 +760,7 @@ def print_verbose_card (card, options):
         ("Loyal",      "is_loyal"),
         ("Unique",     "is_unique"),
         ("Income",     "income"),
-        ("Initiative", "income"),
+        ("Initiative", "initiative"),
         ("Claim",      "claim"),
         ("Reserve",    "reserve"),
         ("Cost",       "cost"),
