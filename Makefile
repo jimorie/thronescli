@@ -14,6 +14,7 @@ clean:
 	rm -rf build
 	rm -rf dist
 	rm -rf thronescli.egg-info
+	rm -rf thronescli/__pycache__
 
 upload:
 	twine upload dist/*
