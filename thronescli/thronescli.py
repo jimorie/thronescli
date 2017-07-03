@@ -274,6 +274,12 @@ TEST_FALSE = [
     default=False,
     help="Print verbose card data."
 )
+@option(
+    "--version",
+    is_flag=True,
+    default=False,
+    help="Print the thronescli version: {}.".format(__version__)
+)
 @pass_context
 def main (ctx, search, **options):
     """
@@ -286,6 +292,9 @@ def main (ctx, search, **options):
     include or exclude cards, respectively.
     """
     preprocess_options(search, options)
+    if options["version"]:
+        echo(__version__)
+        return
     if options["update"]:
         update_cards()
         echo("Card database updated. Thank you thronesdb.com!")
