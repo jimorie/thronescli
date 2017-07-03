@@ -451,7 +451,7 @@ def filter_cards (cards, options):
 def test_card (card, options):
     for option, value in options.iteritems():
         test = CardFilters.get_test(option)
-        if test and (value or option in TEST_FALSE):
+        if test and (value or type(value) is int or option in TEST_FALSE):
             if not test(card, value, options):
                 return False
     return True
@@ -506,11 +506,11 @@ class CardFilters (object):
 
     @staticmethod
     def test_cost_gt (card, value, options):
-        return card["cost"] > value
+        return type(card["cost"]) is int and card["cost"] > value
 
     @staticmethod
     def test_cost_lt (card, value, options):
-        return card["cost"] < value
+        return type(card["cost"]) is int and card["cost"] < value
 
     @staticmethod
     def test_faction (card, values, options):
@@ -564,11 +564,11 @@ class CardFilters (object):
 
     @staticmethod
     def test_str_gt (card, value, options):
-        return card["strength"] > value
+        return type(card["strength"]) is int and card["strength"] > value
 
     @staticmethod
     def test_str_lt (card, value, options):
-        return card["strength"] < value
+        return type(card["strength"]) is int and card["strength"] < value
 
     @staticmethod
     def test_text (card, values, options):
