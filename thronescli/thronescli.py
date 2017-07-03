@@ -83,7 +83,7 @@ COUNT_KEYS = [
     "icon",
     "loyal",
     "str",
-    "traits",
+    "trait",
     "type",
     "unique"
 ]
@@ -478,7 +478,7 @@ def count_card (card, options, counts):
                 for icon in ("military", "intrigue", "power"):
                     if card["is_" + icon]:
                         counts[count_field][icon] += 1
-            elif count_field == "traits":
+            elif count_field == "trait":
                 for trait in card["traits"].split("."):
                     if trait:
                         counts[count_field][trait.strip()] += 1
