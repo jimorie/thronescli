@@ -91,6 +91,7 @@ COUNT_KEYS = [
     "income",
     "initiative",
     "loyal",
+    "name",
     "reserve",
     "str",
     "trait",
