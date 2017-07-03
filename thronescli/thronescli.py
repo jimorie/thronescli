@@ -161,6 +161,12 @@ TEST_FALSE = [
     help="Find cards without given icon (exclusive)."
 )
 @option(
+    "--inclusive",
+    is_flag=True,
+    default=False,
+    help="Treat multiple options of the same type as inclusive rather than exclusive. (Or-logic instead of and-logic.)"
+)
+@option(
     "--include-draft",
     is_flag=True,
     default=False,
@@ -508,11 +514,13 @@ class CardFilters (object):
 
     @staticmethod
     def test_icon (card, values, options):
-        return all(card["is_{}".format(value)] for value in values)
+        any_or_all = any if options["inclusive"] else all
+        return any_or_all(card["is_{}".format(value)] for value in values)
 
     @staticmethod
     def test_icon_isnt (card, values, options):
-        return all(not card["is_{}".format(value)] for value in values)
+        any_or_all = any if options["inclusive"] else all
+        return any_or_all(not card["is_{}".format(value)] for value in values)
 
     @staticmethod
     def test_include_draft (card, value, options):
@@ -556,21 +564,25 @@ class CardFilters (object):
 
     @staticmethod
     def test_text (card, values, options):
-        return all(CardFilters.match_value(value, card["text"], options) for value in values)
+        any_or_all = any if options["inclusive"] else all
+        return any_or_all(CardFilters.match_value(value, card["text"], options) for value in values)
 
     @staticmethod
     def test_text_isnt (card, values, options):
-        return all(not CardFilters.match_value(value, card["text"], options) for value in values)
+        any_or_all = any if options["inclusive"] else all
+        return any_or_all(not CardFilters.match_value(value, card["text"], options) for value in values)
 
     @staticmethod
     def test_trait (card, values, options):
         traits = [trait.strip() for trait in card["traits"].split(".")]
-        return all(any(CardFilters.match_value(value, trait, options) for trait in traits) for value in values)
+        any_or_all = any if options["inclusive"] else all
+        return any_or_all(any(CardFilters.match_value(value, trait, options) for trait in traits) for value in values)
 
     @staticmethod
     def test_trait_isnt (card, values, options):
         traits = [trait.strip() for trait in card["traits"].split(".")]
-        return all(not any(CardFilters.match_value(value, trait, options) for trait in traits) for value in values)
+        any_or_all = any if options["inclusive"] else all
+        return any_or_all(not any(CardFilters.match_value(value, trait, options) for trait in traits) for value in values)
 
     @staticmethod
     def test_type (card, values, options):
