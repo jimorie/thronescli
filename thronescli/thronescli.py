@@ -382,9 +382,10 @@ def preprocess_field (options, field, candidates, postprocess_value=None):
             value = value.lower()
             value = get_single_match(value, candidates)
             if value is None:
-                raise ClickException("--{} option got invalid argument: {}".format(
+                raise ClickException("no such --{} argument: {}.  (Possible arguments: {})".format(
                     get_field_name(field),
-                    values[i]
+                    values[i],
+                    ", ".join(candidates)
                 ))
             if postprocess_value:
                 value = postprocess_value(value)
