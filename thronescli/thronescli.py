@@ -248,8 +248,7 @@ TEST_FALSE = [
 )
 @option(
     "--name",
-    "-n",
-    help="Find cards with matching name."
+    help="Find cards with matching name. (This is the default search.)"
 )
 @option(
     "--name-only",
@@ -414,14 +413,12 @@ def preprocess_options (search, options):
 
 
 def preprocess_search (options, search):
-    options["search"] = " ".join(search) if search else None
+    options["name"] = " ".join(search) if search else None
 
 
 def preprocess_regex (options):
     flags = IGNORECASE if not options["case"] else 0
     if options["regex"]:
-        if options["search"]:
-            options["search"] = re_compile(options["search"], flags=flags)
         if options["name"]:
             options["name"] = re_compile(options["name"], flags=flags)
         if options["trait"]:
@@ -440,8 +437,6 @@ def preprocess_regex (options):
 
 def preprocess_case (options):
     if not options["case"] and not options["regex"]:
-        if options["search"]:
-            options["search"] = options["search"].lower()
         if options["name"]:
             options["name"] = options["name"].lower()
         if options["trait"]:
@@ -706,14 +701,6 @@ class CardFilters (object):
     @staticmethod
     def test_reserve_lt (card, value, options):
         return type(card["reserve"]) is int and card["reserve"] < value
-
-    @staticmethod
-    def test_search (card, value, options):
-        return (
-            CardFilters.test_name(card, value, options)
-            or CardFilters.test_text(card, (value,), options)
-            or CardFilters.test_trait(card, (value,), options)
-        )
 
     @staticmethod
     def test_set (card, values, options):
