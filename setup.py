@@ -11,7 +11,7 @@ setup(
     author='Petter Nyström',
     author_email='jimorie@gmail.com',
     url='https://github.com/jimorie/thronescli',  # use the URL to the github repo
-    download_url='https://github.com/jimorie/thronescli/archive/{}.tar.gz'.format(version),
+    download_url='https://github.com/jimorie/thronescli/archive/v{}.tar.gz'.format(version),
     keywords=['game of thrones', 'thrones', 'thronesdb.com'],  # arbitrary keywords
     classifiers=[],
     install_requires=[

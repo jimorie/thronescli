@@ -7,7 +7,7 @@ dist:
 version:
 	git add thronescli/thronescli.py
 	git commit -m'Version ${version}'
-	git tag ${version}
+	git tag v${version}
 	git push --tags origin master
 
 clean:
