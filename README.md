@@ -134,6 +134,8 @@ Find all Greyjoy characters with an intrigue icon, sorted by STR:
     Aeron Damphair: Unique. House Greyjoy. Character. 6 Cost. 4 STR. I. P.
     Euron Crow's Eye: Unique. House Greyjoy. Character. 7 Cost. 6 STR. M. I. P.
 
+    Total count: 8
+
 Use the --text and --regex options to find all non-limited income providing cards:
 
     $ thronescli --text "\+\d+ Income" --text-isnt "Limited" --regex
