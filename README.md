@@ -8,7 +8,7 @@ Why?
 
 [Thronesdb.com](http://thronesdb.com/) is a great web site, but sometimes it's just nice to do things from the command line.
 
-Thrones CLI also has the ability produce card count breakdowns based on a selected field, with the --count option. (That is the only feature advantage, though.)
+Thrones CLI also has the ability produce card count breakdowns based on a selected field, with the --count option.
 
 Install
 -------
