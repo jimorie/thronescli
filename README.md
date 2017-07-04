@@ -17,7 +17,7 @@ Thrones CLI can be installed from [PyPI](https://pypi.python.org/pypi/thronescli
 
     sudo pip install thronescli
 
-Or you can just download the Python script [here on GitHub](https://raw.githubusercontent.com/jimorie/thronescli/master/thronescli/thronescli.py).
+If you download the Python script from [here on GitHub](https://raw.githubusercontent.com/jimorie/thronescli/master/thronescli/thronescli.py) note that there is a third-party dependency on the [Click framework](http://click.pocoo.org/).
 
 Options
 -------
