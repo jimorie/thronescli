@@ -94,7 +94,7 @@ Thrones CLI has the following options as given by the --help option:
 Examples
 --------
 
-Basic usage finding a card by its name:
+Find a card by its name:
 
     $ thronescli Asha
     Asha Greyjoy: Unique. House Greyjoy. Character. 5 Cost. 4 STR. M. P.
@@ -136,7 +136,7 @@ Find all Greyjoy characters with an intrigue icon, sorted by STR:
 
     Total count: 8
 
-Use the --text and --regex options to find all non-limited income providing cards:
+Find all non-limited income providing cards:
 
     $ thronescli --text "\+\d+ Income" --text-isnt "Limited" --regex
     Littlefinger: Unique. Neutral. Character. 5 Cost. 4 STR. I. P.
@@ -148,7 +148,7 @@ Use the --text and --regex options to find all non-limited income providing card
 
     Total count: 6
 
-Use the --count option to find the best faction for using [Street of Silk](http://thronesdb.com/card/02118):
+Find the best faction for using [Street of Silk](http://thronesdb.com/card/02118):
 
     $ thronescli --trait ally --trait companion --inclusive --count faction --count-only
     Faction counts
@@ -164,9 +164,9 @@ Use the --count option to find the best faction for using [Street of Silk](http:
 
     Total count: 63
 
-Find the icon spread among all 1 cost characters:
+Find all 1 cost characters and get a breakdown of their trait and icon spread.
 
-    $ thronescli --cost 1 -t char --count icon
+    $ thronescli --cost 1 -t char --count icon --count trait
     Dragonstone Faithful: House Baratheon. Character. 1 Cost. 1 STR. P.
     Iron Islands Fishmonger: House Greyjoy. Character. 1 Cost. 1 STR. P.
     Lannisport Merchant: House Lannister. Character. 1 Cost. 1 STR. P.
@@ -180,6 +180,15 @@ Find the icon spread among all 1 cost characters:
     Bronn: Unique. House Lannister. Character. 1 Cost. 5 STR. M.
     Rickon Stark: Unique. House Stark. Character. 1 Cost. 1 STR.
     Builder at the Wall: The Night's Watch. Character. 1 Cost. 1 STR. P.
+
+    Trait counts
+    Ally:      8
+    Steward:   3
+    Lord:      2
+    Mercenary: 1
+    Merchant:  1
+    Builder:   1
+    Raven:     1
 
     Icon counts
     Power:    9
