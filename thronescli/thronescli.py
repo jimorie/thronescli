@@ -561,7 +561,7 @@ def count_card (card, options, counts):
     if options["count"]:
         for count_field in options["count"]:
             if count_field == "icon":
-                for icon in ("military", "intrigue", "power"):
+                for icon in ICONS:
                     if card["is_" + icon]:
                         counts[count_field][icon] += 1
             elif count_field == "trait":
