@@ -120,6 +120,12 @@ TEST_FALSE = [
     nargs=-1
 )
 @option(
+    "--brief",
+    is_flag=True,
+    default=False,
+    help="Show brief card data."
+)
+@option(
     "--case",
     is_flag=True,
     default=False,
@@ -391,13 +397,13 @@ def main (ctx, search, **options):
     cards = load_cards(options)
     cards = filter_cards(cards, options)
     cards = sort_cards(cards, options)
-    counts = defaultdict(lambda: defaultdict(int))
-    total = 0
+    cards = list(cards)
+    counts, total = count_cards(cards, options)
+    if options["verbose"] is False and options["brief"] is False:
+        options["verbose"] = total == 1
     for card in cards:
         if not options["count_only"]:
             print_card(card, options)
-        count_card(card, options, counts)
-        total += 1
     print_counts(counts, options, total)
 
 
@@ -555,26 +561,6 @@ def test_card (card, options):
             if not test(card, value, options):
                 return False
     return True
-
-
-def count_card (card, options, counts):
-    if options["count"]:
-        for count_field in options["count"]:
-            if count_field == "icon":
-                for icon in ICONS:
-                    if card["is_" + icon]:
-                        counts[count_field][icon] += 1
-            elif count_field == "trait":
-                for trait in card["traits"].split("."):
-                    if trait:
-                        counts[count_field][trait.strip()] += 1
-            elif count_field in ["unique", "loyal"]:
-                if card["is_" + count_field]:
-                    counts[count_field][count_field.title()] += 1
-                else:
-                    counts[count_field]["Non-" + count_field.title()] += 1
-            elif card[count_field] or type(card[count_field]) is int:
-                counts[count_field][card[count_field]] += 1
 
 
 class CardFilters (object):
@@ -758,6 +744,31 @@ def sort_cards (cards, options):
     if options["sort"]:
         return sorted(cards, key=itemgetter(*options["sort"]))
     return cards
+
+
+def count_cards (cards, options):
+    counts = defaultdict(lambda: defaultdict(int))
+    total = 0
+    for card in cards:
+        total += 1
+        if options["count"]:
+            for count_field in options["count"]:
+                if count_field == "icon":
+                    for icon in ICONS:
+                        if card["is_" + icon]:
+                            counts[count_field][icon] += 1
+                elif count_field == "trait":
+                    for trait in card["traits"].split("."):
+                        if trait:
+                            counts[count_field][trait.strip()] += 1
+                elif count_field in ["unique", "loyal"]:
+                    if card["is_" + count_field]:
+                        counts[count_field][count_field.title()] += 1
+                    else:
+                        counts[count_field]["Non-" + count_field.title()] += 1
+                elif card[count_field] or type(card[count_field]) is int:
+                    counts[count_field][card[count_field]] += 1
+    return counts, total
 
 
 def print_card (card, options):
