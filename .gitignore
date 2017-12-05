@@ -3,3 +3,4 @@
 build
 dist
 thronescli.egg-info
+.venv
