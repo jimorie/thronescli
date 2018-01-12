@@ -28,7 +28,7 @@ from click import (
 )
 
 
-__version__ = "1.1"
+__version__ = "1.2"
 
 
 CARDS_URL = "http://thronesdb.com/api/public/cards/"
@@ -362,9 +362,8 @@ TEST_FALSE = [
 @option(
     "--verbose",
     "-v",
-    is_flag=True,
-    default=False,
-    help="Show verbose card data."
+    count=True,
+    help="Show verbose card data. Use twice (-vv) for all data."
 )
 @option(
     "--version",
@@ -399,8 +398,8 @@ def main (ctx, search, **options):
     cards = sort_cards(cards, options)
     cards = list(cards)
     counts, total = count_cards(cards, options)
-    if options["verbose"] is False and options["brief"] is False:
-        options["verbose"] = total == 1
+    if options["verbose"] == 0 and options["brief"] is False and total == 1:
+        options["verbose"] = 1
     for card in cards:
         if not options["count_only"]:
             print_card(card, options)
@@ -787,9 +786,6 @@ def print_verbose_card (card, options):
     if card["text"]:
         print_markup(card["text"])
     print_verbose_fields(card, [
-        ("Faction",    "faction_name"),
-        ("Loyal",      "is_loyal"),
-        ("Unique",     "is_unique"),
         ("Income",     "income"),
         ("Initiative", "initiative"),
         ("Claim",      "claim"),
@@ -806,13 +802,17 @@ def print_verbose_card (card, options):
         if card["is_power"]:
             secho(" P", fg="blue", nl=False)
         echo("")
-    print_verbose_fields(card, [
-        ("Deck Limit",  "deck_limit"),
-        ("Expansion",   "pack_name"),
-        ("Card #",      "position"),
-        ("Illustrator", "illustrator"),
-        ("Flavor Text", "flavor")
-    ])
+    if options["verbose"] > 1:
+        print_verbose_fields(card, [
+            ("Faction",    "faction_name"),
+            ("Loyal",      "is_loyal"),
+            ("Unique",     "is_unique"),
+            ("Deck Limit",  "deck_limit"),
+            ("Expansion",   "pack_name"),
+            ("Card #",      "position"),
+            ("Illustrator", "illustrator"),
+            ("Flavor Text", "flavor")
+        ])
     echo("")
 
 
@@ -835,6 +835,8 @@ def print_brief_card (card, options):
     secho(card["name"] + ":", fg="cyan", bold=True, nl=False)
     if card["is_unique"] is True:
         secho(" Unique.", nl=False)
+    if card["is_loyal"] is True:
+        secho(" Loyal.", nl=False)
     secho(" " + card["faction_name"] + ".", nl=False)
     secho(" " + card["type_name"] + ".", nl=False)
     if card["cost"] is not None:
