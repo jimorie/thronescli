@@ -28,7 +28,7 @@ from click import (
 )
 
 
-__version__ = "1.2.1"
+__version__ = "1.2.2"
 
 
 CARDS_URL = "http://thronesdb.com/api/public/cards/"
@@ -773,7 +773,7 @@ def count_cards (cards, options):
 def print_card (card, options):
     if options["verbose"]:
         print_verbose_card(card, options)
-    elif options["name_only"]:
+    elif options["brief"]:
         secho(card["name"], fg="cyan", bold=True)
     else:
         print_brief_card(card, options)
