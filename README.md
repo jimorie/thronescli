@@ -25,6 +25,7 @@ Options
 Thrones CLI has the following options as given by the --help option:
 
     Options:
+      --brief                  Show brief card data.
       --case                   Use case sensitive matching.
       --claim INTEGER          Find cards with given claim (inclusive).
       --claim-gt INTEGER       Find cards with greater than given claim.
@@ -87,8 +88,9 @@ Thrones CLI has the following options as given by the --help option:
                                event, location, plot, title.
       --unique                 Find unique cards.
       --update                 Fetch new card data from thronesdb.com.
-      -v, --verbose            Show verbose card data.
-      --version                Show the thronescli version: 0.10.2.
+      -v, --verbose            Show verbose card data. Use twice (-vv) for all
+                               data.
+      --version                Show the thronescli version: 1.2.
       --help                   Show this message and exit.
 
 Examples
