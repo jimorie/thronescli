@@ -28,7 +28,7 @@ from click import (
 )
 
 
-__version__ = "1.2.2"
+__version__ = "1.2.3"
 
 
 CARDS_URL = "http://thronesdb.com/api/public/cards/"
@@ -845,12 +845,11 @@ def print_brief_card (card, options):
         secho(" " + str(card["strength"]) + " STR.", nl=False)
         if card["is_military"]:
             secho(" M", fg="red", bold=True, nl=False)
-            secho(".", nl=False)
         if card["is_intrigue"]:
             secho(" I", fg="green", bold=True, nl=False)
-            secho(".", nl=False)
         if card["is_power"]:
             secho(" P", fg="blue", bold=True, nl=False)
+        if any(card[x] for x in ("is_military", "is_intrigue", "is_power")):
             secho(".", nl=False)
     if card["type_code"] == "plot":
         secho(" " + str(card["income"]) + " Gold.", nl=False)
