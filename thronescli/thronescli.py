@@ -28,7 +28,7 @@ from click import (
 )
 
 
-__version__ = "1.2.3"
+__version__ = "1.2.4"
 
 
 CARDS_URL = "http://thronesdb.com/api/public/cards/"
@@ -112,6 +112,7 @@ DRAFT_PACKS = [
 TEST_FALSE = [
     "include_draft"
 ]
+TAG_PATTERN = re_compile("<.*?>")
 
 
 @command()
@@ -709,12 +710,18 @@ class CardFilters (object):
     @staticmethod
     def test_text (card, values, options):
         any_or_all = any if options["inclusive"] else all
-        return any_or_all(CardFilters.match_value(value, card["text"], options) for value in values)
+        return any_or_all(
+            CardFilters.match_value(value, strip_markup(card["text"]), options)
+            for value in values
+        )
 
     @staticmethod
     def test_text_isnt (card, values, options):
         any_or_all = any if options["inclusive"] else all
-        return any_or_all(not CardFilters.match_value(value, card["text"], options) for value in values)
+        return any_or_all(
+            not CardFilters.match_value(value, strip_markup(card["text"]), options)
+            for value in values
+        )
 
     @staticmethod
     def test_trait (card, values, options):
@@ -889,6 +896,10 @@ def parse_markup (text):
         else:
             yield style(text[beg:], **kwargs)
             break
+
+
+def strip_markup (text):
+    return TAG_PATTERN.sub("", text)
 
 
 def print_counts (counts, options, total):
