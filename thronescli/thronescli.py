@@ -315,6 +315,11 @@ TAG_PATTERN = re_compile("<.*?>")
     help="Find cards from matching expansion sets (inclusive). Implies --include-draft."
 )
 @option(
+    "--show",
+    multiple=True,
+    help="Show only given fields in non-verbose mode. Possible fields are: {}.".format(", ".join(SORT_KEYS))
+)
+@option(
     "--sort",
     multiple=True,
     help="Sort resulting cards by the given field. Possible fields are: {}.".format(", ".join(SORT_KEYS))
@@ -412,6 +417,9 @@ def main (ctx, search, **options):
     counts, total = count_cards(cards, options)
     if options["verbose"] == 0 and options["brief"] is False and total == 1:
         options["verbose"] = 1
+    if options["show"]:
+        options["verbose"] = 0
+        options["brief"] = False
     prevgroup = None
     for card in cards:
         if not options["count_only"]:
@@ -505,6 +513,7 @@ def preprocess_icon (options):
 def preprocess_sort (options):
     preprocess_field(options, "group", SORT_KEYS, postprocess_value=get_field_db_key)
     preprocess_field(options, "sort", SORT_KEYS, postprocess_value=get_field_db_key)
+    preprocess_field(options, "show", SORT_KEYS, postprocess_value=get_field_db_key)
 
 
 def preprocess_count (options):
@@ -820,6 +829,8 @@ def print_card (card, options):
         print_verbose_card(card, options)
     elif options["brief"]:
         secho(card["name"], fg="cyan", bold=True)
+    elif options["show"]:
+        print_explicit_brief_card(card, options)
     else:
         print_brief_card(card, options)
 
@@ -904,6 +915,13 @@ def print_brief_card (card, options):
     secho("")
 
 
+def print_explicit_brief_card (card, options):
+    secho(card["name"] + ":", fg="cyan", bold=True, nl=False)
+    for show in options["show"]:
+        secho(" " + get_pretty_name(card[show], meta=show) + ".", nl=False)
+    secho("")
+
+
 def print_markup (text):
     for styled_text in parse_markup(text):
         echo(styled_text, nl=False)
@@ -966,6 +984,11 @@ def get_pretty_name (field, meta=None):
             return "{} {}".format(field, get_pretty_name(meta))
         else:
             return str(field)
+    elif field is None:
+        if meta:
+            return "No {}".format(get_pretty_name(meta))
+        else:
+            return "None"
     if field in FACTIONS:
         return get_faction_name(field)
     elif field.endswith("_code"):
