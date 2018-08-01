@@ -106,6 +106,9 @@ DB_KEY_MAPPING = {
     "str"    : "strength",
     "type"   : "type_code"
 }
+FIELD_NAME_MAPPING = {
+    v: k for k, v in DB_KEY_MAPPING.items()
+}
 DRAFT_PACKS = [
     "VDS"
 ]
@@ -193,6 +196,14 @@ TAG_PATTERN = re_compile("<.*?>")
     "--faction-isnt",
     multiple=True,
     help="Find cards with other than given faction (exclusive)."
+)
+@option(
+    "--group",
+    multiple=True,
+    help=(
+        "Sort resulting cards by the given field and print group headers. "
+        "Possible fields are: {}."
+    ).format(", ".join(SORT_KEYS))
 )
 @option(
     "--illustrator",
@@ -401,8 +412,29 @@ def main (ctx, search, **options):
     counts, total = count_cards(cards, options)
     if options["verbose"] == 0 and options["brief"] is False and total == 1:
         options["verbose"] = 1
+    prevgroup = None
     for card in cards:
         if not options["count_only"]:
+            if options["group"]:
+                thisgroup = {group: card.get(group) for group in options["group"]}
+                if thisgroup != prevgroup:
+                    if prevgroup is not None and options["verbose"] < 1:
+                        echo("")
+                    secho(
+                        u"[ {} ]".format(
+                            u", ".join(
+                                u"{}: {}".format(
+                                    get_field_name(group),
+                                    get_pretty_name(card.get(group), meta=group)
+                                )
+                                for group in options["group"]
+                            ),
+                        ),
+                        fg="yellow",
+                        bold=True
+                    )
+                    echo("")
+                    prevgroup = thisgroup
             print_card(card, options)
     print_counts(counts, options, total)
 
@@ -471,6 +503,7 @@ def preprocess_icon (options):
 
 
 def preprocess_sort (options):
+    preprocess_field(options, "group", SORT_KEYS, postprocess_value=get_field_db_key)
     preprocess_field(options, "sort", SORT_KEYS, postprocess_value=get_field_db_key)
 
 
@@ -517,6 +550,10 @@ def get_field_name (field):
 
 def get_field_db_key (field):
     return DB_KEY_MAPPING.get(field, field)
+
+
+def get_field_name (db_key):
+    return FIELD_NAME_MAPPING.get(db_key, db_key).title()
 
 
 def get_faction_name (faction_code):
@@ -747,8 +784,9 @@ class CardFilters (object):
 
 
 def sort_cards (cards, options):
-    if options["sort"]:
-        return sorted(cards, key=itemgetter(*options["sort"]))
+    if options["sort"] or options["group"]:
+        sortfields = options["group"] + options["sort"]
+        return sorted(cards, key=itemgetter(*sortfields))
     return cards
 
 
