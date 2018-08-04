@@ -26,6 +26,7 @@ from click import (
     secho,
     style
 )
+from titlecase import titlecase
 
 
 __version__ = "1.3.0"
@@ -562,11 +563,11 @@ def get_field_db_key (field):
 
 
 def get_field_name (db_key):
-    return FIELD_NAME_MAPPING.get(db_key, db_key).title()
+    return titlecase(FIELD_NAME_MAPPING.get(db_key, db_key))
 
 
 def get_faction_name (faction_code):
-    return FACTIONS[faction_code].get("name", "House {}".format(faction_code.title()))
+    return FACTIONS[faction_code].get("name", "House {}".format(titlecase(faction_code)))
 
 
 def load_cards (options):
@@ -816,9 +817,9 @@ def count_cards (cards, options):
                             counts[count_field][trait.strip()] += 1
                 elif count_field in ["unique", "loyal"]:
                     if card["is_" + count_field]:
-                        counts[count_field][count_field.title()] += 1
+                        counts[count_field][titlecase(count_field)] += 1
                     else:
-                        counts[count_field]["Non-" + count_field.title()] += 1
+                        counts[count_field]["Non-" + titlecase(count_field)] += 1
                 elif card[count_field] or type(card[count_field]) is int:
                     counts[count_field][card[count_field]] += 1
     return counts, total
@@ -992,11 +993,11 @@ def get_pretty_name (field, meta=None):
     if field in FACTIONS:
         return get_faction_name(field)
     elif field.endswith("_code"):
-        return field[:-len("_code")].title()
+        return titlecase(field[:-len("_code")])
     elif field == "strength":
         return "STR"
     else:
-        return field.title()
+        return titlecase(field)
 
 
 if __name__ == '__main__':
