@@ -30,7 +30,7 @@ from click import (
 from titlecase import titlecase
 
 
-__version__ = "1.3.1"
+__version__ = "1.4.0"
 
 
 CARDS_URL = "http://thronesdb.com/api/public/cards/"
