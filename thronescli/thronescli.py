@@ -274,11 +274,6 @@ TAG_PATTERN = re_compile("<.*?>")
     help="Find cards with matching name. (This is the default search.)"
 )
 @option(
-    "--name-only",
-    is_flag=True,
-    help="Show only card names."
-)
-@option(
     "--loyal",
     is_flag=True,
     help="Find loyal cards."
