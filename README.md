@@ -17,8 +17,6 @@ Thrones CLI can be installed from [PyPI](https://pypi.python.org/pypi/thronescli
 
     sudo pip install thronescli
 
-If you download the Python script from [here on GitHub](https://raw.githubusercontent.com/jimorie/thronescli/master/thronescli/thronescli.py) note that there is a third-party dependency on the [Click framework](http://click.pocoo.org/).
-
 Options
 -------
 
@@ -46,6 +44,11 @@ Thrones CLI has the following options as given by the --help option:
                                tyrell.
       --faction-isnt TEXT      Find cards with other than given faction
                                (exclusive).
+      --group TEXT             Sort resulting cards by the given field and print
+                               group headers. Possible fields are: cost, claim,
+                               faction, icon, illustrator, income, initiative,
+                               loyal, name, reserve, set, str, trait, type,
+                               unique.
       --illustrator TEXT       Find cards by the given illustrator (inclusive).
       --income INTEGER         Find cards with given income (inclusive).
       --income-gt INTEGER      Find cards with greater than given income.
@@ -72,6 +75,10 @@ Thrones CLI has the following options as given by the --help option:
       -r, --regex              Use regular expression matching.
       --set TEXT               Find cards from matching expansion sets
                                (inclusive). Implies --include-draft.
+      --show TEXT              Show only given fields in non-verbose mode.
+                               Possible fields are: cost, claim, faction, icon,
+                               illustrator, income, initiative, loyal, name,
+                               reserve, set, str, trait, type, unique.
       --sort TEXT              Sort resulting cards by the given field. Possible
                                fields are: cost, claim, faction, income,
                                illustrator, initiative, name, reserve, set, str,
@@ -90,7 +97,7 @@ Thrones CLI has the following options as given by the --help option:
       --update                 Fetch new card data from thronesdb.com.
       -v, --verbose            Show verbose card data. Use twice (-vv) for all
                                data.
-      --version                Show the thronescli version: 1.2.
+      --version                Show the thronescli version: 1.4.0.
       --help                   Show this message and exit.
 
 Examples
@@ -99,9 +106,10 @@ Examples
 Find a card by its name:
 
     $ thronescli Asha
-    Asha Greyjoy: Unique. House Greyjoy. Character. 5 Cost. 4 STR. M. P.
+    Asha Greyjoy: Unique. House Greyjoy. Character. 5 Cost. 4 STR. M P.
+    Asha Greyjoy: Unique. Loyal. House Greyjoy. Character. 7 Cost. 5 STR. M I P.
 
-    Total count: 1
+    Total count: 2
 
 Use the --verbose flag to show all the card data:
 
@@ -110,94 +118,157 @@ Use the --verbose flag to show all the card data:
     Ironborn. Lady.
     Stealth.
     Reaction: After you win an unopposed challenge in which Asha Greyjoy is participating, stand her.
-    Faction: House Greyjoy
-    Loyal: No
-    Unique: Yes
     Cost: 5
     STR: 4
     Icons: M P
+
+    Asha Greyjoy
+    Captain. Ironborn. Lady.
+    Pillage. Stealth.
+    Reaction: After Asha Greyjoy discards a card using pillage, search the top X cards of your deck for a card and add it to your hand. Shuffle your deck. X is the number of cards in the losing opponent's discard pile.
+    Cost: 7
+    STR: 5
+    Icons: M I P
+
+    Total count: 2
+
+    $ thronescli Asha -vv
+    Asha Greyjoy
+    Ironborn. Lady.
+    Stealth.
+    Reaction: After you win an unopposed challenge in which Asha Greyjoy is participating, stand her.
+    Cost: 5
+    STR: 4
+    Icons: M P
+    Faction: House Greyjoy
+    Loyal: No
+    Unique: Yes
     Deck Limit: 3
     Expansion: Core Set
     Card #: 67
     Illustrator: Mark Behm
     Flavor Text: "I am Asha of House Greyjoy, aye. Opinions differ on whether I'm a lady."
 
-    Total count: 1
+    Asha Greyjoy
+    Captain. Ironborn. Lady.
+    Pillage. Stealth.
+    Reaction: After Asha Greyjoy discards a card using pillage, search the top X cards of your deck for a card and add it to your hand. Shuffle your deck. X is the number of cards in the losing opponent's discard pile.
+    Cost: 7
+    STR: 5
+    Icons: M I P
+    Faction: House Greyjoy
+    Loyal: Yes
+    Unique: Yes
+    Deck Limit: 3
+    Expansion: Kingsmoot
+    Card #: 51
+    Illustrator: Magali Villeneuve
+    Flavor Text:
 
-Find all Greyjoy characters with an intrigue icon, sorted by STR:
+    Total count: 2
 
-    $ thronescli -f gj --icon i --sort str
+Find all Greyjoy characters with an intrigue icon, grouped by STR:
+
+    $ thronescli -f gj --icon i --group str
+    [ 1 STR ]
+
     Lordsport Shipwright: House Greyjoy. Character. 2 Cost. 1 STR. I.
-    Alannys Greyjoy: Unique. House Greyjoy. Character. 3 Cost. 2 STR. I. P.
-    Priest of the Drowned God: House Greyjoy. Character. 3 Cost. 2 STR. I. P.
-    Esgred: Unique. House Greyjoy. Character. 5 Cost. 2 STR. M. I. P.
-    Wex Pyke: Unique. House Greyjoy. Character. 2 Cost. 2 STR. M. I.
-    The Reader: Unique. House Greyjoy. Character. 5 Cost. 4 STR. I. P.
-    Aeron Damphair: Unique. House Greyjoy. Character. 6 Cost. 4 STR. I. P.
-    Euron Crow's Eye: Unique. House Greyjoy. Character. 7 Cost. 6 STR. M. I. P.
 
-    Total count: 8
+    [ 2 STR ]
+
+    Alannys Greyjoy: Unique. House Greyjoy. Character. 3 Cost. 2 STR. I P.
+    Priest of the Drowned God: House Greyjoy. Character. 3 Cost. 2 STR. I P.
+    Esgred: Unique. House Greyjoy. Character. 5 Cost. 2 STR. M I P.
+    Wex Pyke: Unique. House Greyjoy. Character. 2 Cost. 2 STR. M I.
+
+    [ 3 STR ]
+
+    Drowned God's Apostle: House Greyjoy. Character. 4 Cost. 3 STR. I P.
+
+    [ 4 STR ]
+
+    The Reader: Unique. Loyal. House Greyjoy. Character. 5 Cost. 4 STR. I P.
+    Aeron Damphair: Unique. House Greyjoy. Character. 6 Cost. 4 STR. I P.
+    Tarle the Thrice-Drowned: Unique. Loyal. House Greyjoy. Character. 5 Cost. 4 STR. I P.
+
+    [ 5 STR ]
+
+    Asha Greyjoy: Unique. Loyal. House Greyjoy. Character. 7 Cost. 5 STR. M I P.
+
+    [ 6 STR ]
+
+    Euron Crow's Eye: Unique. Loyal. House Greyjoy. Character. 7 Cost. 6 STR. M I P.
+
+    Total count: 11
 
 Find all non-limited income providing cards:
 
     $ thronescli --text "\+\d+ Income" --text-isnt "Limited" --regex
-    Littlefinger: Unique. Neutral. Character. 5 Cost. 4 STR. I. P.
-    Tywin Lannister: Unique. House Lannister. Character. 7 Cost. 6 STR. M. I. P.
-    Paxter Redwyne: Unique. House Tyrell. Character. 4 Cost. 3 STR. I.
-    Master of Coin: Neutral. Title.
+    Littlefinger: Unique. Neutral. Character. 5 Cost. 4 STR. I P.
+    Tywin Lannister: Unique. Loyal. House Lannister. Character. 7 Cost. 6 STR. M I P.
+    Paxter Redwyne: Unique. Loyal. House Tyrell. Character. 4 Cost. 3 STR. I.
+    Master of Coin: Neutral. Title. No Cost.
     The God's Eye: Unique. Neutral. Location. 3 Cost.
-    Shield of Lannisport: Unique. House Lannister. Attachment. 3 Cost.
+    Shield of Lannisport: Unique. Loyal. House Lannister. Attachment. 3 Cost.
+    Northern Armory: Loyal. House Stark. Location. 2 Cost.
+    Stormlands Fiefdom: Loyal. House Baratheon. Location. 2 Cost.
+    Tycho Nestoris: Unique. Neutral. Character. 6 Cost. 3 STR. P.
+    Refurbished Hulk: Loyal. House Greyjoy. Location. 2 Cost.
 
-    Total count: 6
+    Total count: 10
 
 Find the best faction for using [Street of Silk](http://thronesdb.com/card/02118):
 
     $ thronescli --trait ally --trait companion --inclusive --count faction --count-only
-    Faction counts
-    House Lannister:   12
-    House Targaryen:   9
-    Neutral:           8
-    House Martell:     8
-    House Greyjoy:     6
-    House Stark:       6
-    House Tyrell:      5
-    House Baratheon:   5
-    The Night's Watch: 4
+    [ Faction counts ]
 
-    Total count: 63
+    House Targaryen:   15
+    House Lannister:   14
+    Neutral:           10
+    House Baratheon:   10
+    House Martell:     10
+    House Greyjoy:     8
+    House Stark:       8
+    House Tyrell:      7
+    The Night's Watch: 6
+
+    Total count: 88
 
 Find all 1 cost characters and get a breakdown of their trait and icon spread.
 
     $ thronescli --cost 1 -t char --count icon --count trait
-    Dragonstone Faithful: House Baratheon. Character. 1 Cost. 1 STR. P.
-    Iron Islands Fishmonger: House Greyjoy. Character. 1 Cost. 1 STR. P.
-    Lannisport Merchant: House Lannister. Character. 1 Cost. 1 STR. P.
-    Desert Scavenger: House Martell. Character. 1 Cost. 1 STR. P.
-    Messenger Raven: The Night's Watch. Character. 1 Cost. 1 STR.
-    Steward at the Wall: The Night's Watch. Character. 1 Cost. 1 STR. I.
-    Winterfell Steward: House Stark. Character. 1 Cost. 1 STR. P.
-    Viserys Targaryen: Unique. House Targaryen. Character. 1 Cost. 1 STR. P.
-    Targaryen Loyalist: House Targaryen. Character. 1 Cost. 1 STR. P.
-    Garden Caretaker: House Tyrell. Character. 1 Cost. 1 STR. P.
-    Bronn: Unique. House Lannister. Character. 1 Cost. 5 STR. M.
-    Rickon Stark: Unique. House Stark. Character. 1 Cost. 1 STR.
-    Builder at the Wall: The Night's Watch. Character. 1 Cost. 1 STR. P.
+    Dragonstone Faithful: Baratheon. Character. 1 Cost. 1 STR. P.
+    Iron Islands Fishmonger: Greyjoy. Character. 1 Cost. 1 STR. P.
+    Lannisport Merchant: Lannister. Character. 1 Cost. 1 STR. P.
+    Desert Scavenger: Martell. Character. 1 Cost. 1 STR. P.
+    Messenger Raven: Loyal. Thenightswatch. Character. 1 Cost. 1 STR. No Icons.
+    Steward at the Wall: Thenightswatch. Character. 1 Cost. 1 STR. I.
+    Winterfell Steward: Stark. Character. 1 Cost. 1 STR. P.
+    Viserys Targaryen: Unique. Loyal. Targaryen. Character. 1 Cost. 1 STR. P.
+    Targaryen Loyalist: Targaryen. Character. 1 Cost. 1 STR. P.
+    Garden Caretaker: Tyrell. Character. 1 Cost. 1 STR. P.
+    Bronn: Unique. Lannister. Character. 1 Cost. 5 STR. M.
+    Rickon Stark: Unique. Stark. Character. 1 Cost. 1 STR. No Icons.
+    Builder at the Wall: Thenightswatch. Character. 1 Cost. 1 STR. P.
+    Planky Town Trader: Martell. Character. 1 Cost. 1 STR. P.
 
-    Trait counts
+    [ Trait counts ]
+
     Ally:      8
     Steward:   3
+    Merchant:  2
     Lord:      2
-    Mercenary: 1
-    Merchant:  1
     Builder:   1
+    Mercenary: 1
     Raven:     1
 
-    Icon counts
-    Power:    9
-    Intrigue: 1
-    Military: 1
+    [ Icon counts ]
 
-    Total count: 13
+    Power:    10
+    Military: 1
+    Intrigue: 1
+
+    Total count: 14
 
 Credits
 -------
