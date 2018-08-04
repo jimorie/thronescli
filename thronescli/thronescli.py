@@ -24,7 +24,8 @@ from click import (
     option,
     pass_context,
     secho,
-    style
+    style,
+    unstyle
 )
 from titlecase import titlecase
 
@@ -105,7 +106,10 @@ DB_KEY_MAPPING = {
     "faction": "faction_code",
     "set"    : "pack_name",
     "str"    : "strength",
-    "type"   : "type_code"
+    "type"   : "type_code",
+    "loyal"  : "is_loyal",
+    "unique" : "is_unique",
+    "trait"  : "traits"
 }
 FIELD_NAME_MAPPING = {
     v: k for k, v in DB_KEY_MAPPING.items()
@@ -204,7 +208,7 @@ TAG_PATTERN = re_compile("<.*?>")
     help=(
         "Sort resulting cards by the given field and print group headers. "
         "Possible fields are: {}."
-    ).format(", ".join(SORT_KEYS))
+    ).format(", ".join(COUNT_KEYS))
 )
 @option(
     "--illustrator",
@@ -318,7 +322,7 @@ TAG_PATTERN = re_compile("<.*?>")
 @option(
     "--show",
     multiple=True,
-    help="Show only given fields in non-verbose mode. Possible fields are: {}.".format(", ".join(SORT_KEYS))
+    help="Show only given fields in non-verbose mode. Possible fields are: {}.".format(", ".join(COUNT_KEYS))
 )
 @option(
     "--sort",
@@ -422,20 +426,18 @@ def main (ctx, search, **options):
         options["verbose"] = 0
         options["brief"] = False
     prevgroup = None
+    groupkey = sortkey(*options["group"]) if options["group"] else None
     for card in cards:
         if not options["count_only"]:
-            if options["group"]:
-                thisgroup = {group: card.get(group) for group in options["group"]}
+            if groupkey:
+                thisgroup = groupkey(card)
                 if thisgroup != prevgroup:
                     if prevgroup is not None and options["verbose"] < 1:
                         echo("")
                     secho(
                         u"[ {} ]".format(
-                            u", ".join(
-                                u"{}: {}".format(
-                                    get_field_name(group),
-                                    get_pretty_name(card.get(group), meta=group)
-                                )
+                            u" | ".join(
+                                format_card_field(card, group, color=False)
                                 for group in options["group"]
                             ),
                         ),
@@ -512,9 +514,9 @@ def preprocess_icon (options):
 
 
 def preprocess_sort (options):
-    preprocess_field(options, "group", SORT_KEYS, postprocess_value=get_field_db_key)
+    preprocess_field(options, "group", COUNT_KEYS, postprocess_value=get_field_db_key)
     preprocess_field(options, "sort", SORT_KEYS, postprocess_value=get_field_db_key)
-    preprocess_field(options, "show", SORT_KEYS, postprocess_value=get_field_db_key)
+    preprocess_field(options, "show", COUNT_KEYS, postprocess_value=get_field_db_key)
 
 
 def preprocess_count (options):
@@ -560,10 +562,6 @@ def get_field_name (field):
 
 def get_field_db_key (field):
     return DB_KEY_MAPPING.get(field, field)
-
-
-def get_field_name (db_key):
-    return titlecase(FIELD_NAME_MAPPING.get(db_key, db_key))
 
 
 def get_faction_name (faction_code):
@@ -793,10 +791,31 @@ class CardFilters (object):
         return card["is_unique"] is True
 
 
+def sortkey(*sortfields):
+    def _sortkey(card):
+        l = []
+        for field in sortfields:
+            if field in card:
+                l.append(card[field])
+            elif field == "icon":
+                iconscore = 0
+                if card["is_military"]:
+                    iconscore -= 12
+                if card["is_intrigue"]:
+                    iconscore -= 11
+                if card["is_power"]:
+                    iconscore -= 10
+                l.append(iconscore)
+            else:
+                l.append(format_card_field(card, field, color=False))
+        return l
+    return _sortkey
+
+
 def sort_cards (cards, options):
     if options["sort"] or options["group"]:
         sortfields = options["group"] + options["sort"]
-        return sorted(cards, key=itemgetter(*sortfields))
+        return sorted(cards, key=sortkey(*sortfields))
     return cards
 
 
@@ -811,15 +830,15 @@ def count_cards (cards, options):
                     for icon in ICONS:
                         if card["is_" + icon]:
                             counts[count_field][icon] += 1
-                elif count_field == "trait":
+                elif count_field == "traits":
                     for trait in card["traits"].split("."):
                         if trait:
                             counts[count_field][trait.strip()] += 1
-                elif count_field in ["unique", "loyal"]:
-                    if card["is_" + count_field]:
-                        counts[count_field][titlecase(count_field)] += 1
+                elif count_field in ["is_unique", "is_loyal"]:
+                    if card[count_field]:
+                        counts[count_field][format_field_name(count_field)] += 1
                     else:
-                        counts[count_field]["Non-" + titlecase(count_field)] += 1
+                        counts[count_field]["Non-" + format_field_name(count_field)] += 1
                 elif card[count_field] or type(card[count_field]) is int:
                     counts[count_field][card[count_field]] += 1
     return counts, total
@@ -831,7 +850,7 @@ def print_card (card, options):
     elif options["brief"]:
         secho(card["name"], fg="cyan", bold=True)
     elif options["show"]:
-        print_explicit_brief_card(card, options)
+        print_brief_card(card, options, options["show"])
     else:
         print_brief_card(card, options)
 
@@ -851,19 +870,13 @@ def print_verbose_card (card, options):
         ("STR",        "strength")
     ])
     if card["type_code"] == "character":
-        secho("Icons:", bold=True, nl=False)
-        if card["is_military"]:
-            secho(" M", fg="red", nl=False)
-        if card["is_intrigue"]:
-            secho(" I", fg="green", nl=False)
-        if card["is_power"]:
-            secho(" P", fg="blue", nl=False)
-        echo("")
+        secho("Icons: ", bold=True, nl=False)
+        secho(format_card_field(card, "icon"))
     if options["verbose"] > 1:
         print_verbose_fields(card, [
-            ("Faction",    "faction_name"),
-            ("Loyal",      "is_loyal"),
-            ("Unique",     "is_unique"),
+            ("Faction",     "faction_name"),
+            ("Loyal",       "is_loyal"),
+            ("Unique",      "is_unique"),
             ("Deck Limit",  "deck_limit"),
             ("Expansion",   "pack_name"),
             ("Card #",      "position"),
@@ -888,38 +901,20 @@ def print_verbose_fields (card, fields):
                 echo(value)
 
 
-def print_brief_card (card, options):
+def print_brief_card (card, options, show=None):
+    if show is None:
+        show = ["unique", "loyal", "faction", "type"]
+        if card["type_code"] == "character":
+            show.extend(["cost", "str", "icon"])
+        elif card["type_code"] == "plot":
+            show.extend(["income", "initiative", "claim", "reserve"])
+        else:
+            show.extend(["cost"])
     secho(card["name"] + ":", fg="cyan", bold=True, nl=False)
-    if card["is_unique"] is True:
-        secho(" Unique.", nl=False)
-    if card["is_loyal"] is True:
-        secho(" Loyal.", nl=False)
-    secho(" " + card["faction_name"] + ".", nl=False)
-    secho(" " + card["type_name"] + ".", nl=False)
-    if card["cost"] is not None:
-        secho(" " + str(card["cost"]) + " Cost.", nl=False)
-    if card["type_code"] == "character":
-        secho(" " + str(card["strength"]) + " STR.", nl=False)
-        if card["is_military"]:
-            secho(" M", fg="red", bold=True, nl=False)
-        if card["is_intrigue"]:
-            secho(" I", fg="green", bold=True, nl=False)
-        if card["is_power"]:
-            secho(" P", fg="blue", bold=True, nl=False)
-        if any(card[x] for x in ("is_military", "is_intrigue", "is_power")):
-            secho(".", nl=False)
-    if card["type_code"] == "plot":
-        secho(" " + str(card["income"]) + " Gold.", nl=False)
-        secho(" " + str(card["initiative"]) + " Init.", nl=False)
-        secho(" " + str(card["claim"]) + " Claim.", nl=False)
-        secho(" " + str(card["reserve"]) + " Reserve.", nl=False)
-    secho("")
-
-
-def print_explicit_brief_card (card, options):
-    secho(card["name"] + ":", fg="cyan", bold=True, nl=False)
-    for show in options["show"]:
-        secho(" " + get_pretty_name(card[show], meta=show) + ".", nl=False)
+    for field in show:
+        tmp = format_card_field(card, field, show_negation=False)
+        if tmp:
+            secho(" {}.".format(tmp), nl=False)
     secho("")
 
 
@@ -965,13 +960,15 @@ def print_counts (counts, options, total):
     for count_field, count_data in counts.items():
         items = list(count_data.items())
         items.sort(key=itemgetter(1), reverse=True)
-        secho("{} counts".format(get_pretty_name(count_field)), fg="green", bold=True)
+        secho("[ {} counts ]".format(format_field_name(count_field)), fg="green", bold=True)
+        echo("")
         fill = 0
         for i in range(len(items)):
-            items[i] = (get_pretty_name(items[i][0], meta=count_field) + ": ", items[i][1])
+            items[i] = (format_field(count_field, items[i][0]), items[i][1])
             fill = max(fill, len(items[i][0]))
         for count_key, count_val in items:
             secho(count_key, bold=True, nl=False)
+            echo(": ", nl=False)
             echo(" " * (fill - len(count_key)), nl=False)
             echo(str(count_val))
         echo("")
@@ -979,26 +976,51 @@ def print_counts (counts, options, total):
     echo(str(total))
 
 
-def get_pretty_name (field, meta=None):
-    if type(field) is int:
-        if meta:
-            return "{} {}".format(field, get_pretty_name(meta))
-        else:
-            return str(field)
-    elif field is None:
-        if meta:
-            return "No {}".format(get_pretty_name(meta))
-        else:
-            return "None"
-    if field in FACTIONS:
-        return get_faction_name(field)
-    elif field.endswith("_code"):
-        return titlecase(field[:-len("_code")])
-    elif field == "strength":
-        return "STR"
-    else:
-        return titlecase(field)
+def format_field_name (field):
+    field = FIELD_NAME_MAPPING.get(field, field)
+    if field in ["str"]:
+        return field.upper()
+    return titlecase(field)
 
 
-if __name__ == '__main__':
+def format_field (field, value, show_negation=True):
+    if value is None:
+        return "No {}".format(format_field_name(field))
+    elif type(value) is int:
+        return "{} {}".format(value, format_field_name(field))
+    elif type(value) is bool:
+        if show_negation or value:
+            return "{}{}".format("" if value else "Non-", format_field_name(field))
+        return None
+    elif field == "faction_code":
+        return get_faction_name(value)
+    elif isinstance(value, basestring):
+        return titlecase(value)
+    return str(value)
+
+
+def format_card_field (card, field, color=True, show_negation=True):
+    if field == "icon":
+        icons = []
+        if card["is_military"]:
+            if color:
+                icons.append(style("M", fg="red", bold=True))
+            else:
+                icons.append("M")
+        if card["is_intrigue"]:
+            if color:
+                icons.append(style("I", fg="green", bold=True))
+            else:
+                icons.append("I")
+        if card["is_power"]:
+            if color:
+                icons.append(style("P", fg="blue", bold=True))
+            else:
+                icons.append("P")
+        return " ".join(icons) if icons else "No Icons"
+    db_key = get_field_db_key(field)
+    return format_field(field, card.get(db_key), show_negation=show_negation)
+
+
+if __name__ == "__main__":
     main()
