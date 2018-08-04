@@ -7,6 +7,7 @@ from operator import itemgetter
 from os import mkdir, remove
 from os.path import join, isfile
 from re import compile as re_compile, IGNORECASE
+from string import capwords
 from sys import argv
 
 # Try import py3 libs first, fall back to py2
@@ -27,7 +28,6 @@ from click import (
     style,
     unstyle
 )
-from titlecase import titlecase
 
 
 __version__ = "1.4.0"
@@ -560,7 +560,7 @@ def get_field_db_key (field):
 
 
 def get_faction_name (faction_code):
-    return FACTIONS[faction_code].get("name", "House {}".format(titlecase(faction_code)))
+    return FACTIONS[faction_code].get("name", "House {}".format(capwords(faction_code)))
 
 
 def load_cards (options):
@@ -975,7 +975,7 @@ def format_field_name (field):
     field = FIELD_NAME_MAPPING.get(field, field)
     if field in ["str"]:
         return field.upper()
-    return titlecase(field)
+    return capwords(field)
 
 
 def format_field (field, value, show_negation=True):
@@ -990,7 +990,7 @@ def format_field (field, value, show_negation=True):
     elif field == "faction_code":
         return get_faction_name(value)
     elif isinstance(value, basestring):
-        return titlecase(value)
+        return capwords(value)
     return str(value)
 
 

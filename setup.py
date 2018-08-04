@@ -15,8 +15,7 @@ setup(
     keywords=['game of thrones', 'thrones', 'thronesdb.com'],  # arbitrary keywords
     classifiers=[],
     install_requires=[
-        'click',
-        'titlecase'
+        'click'
     ],
     entry_points={
         'console_scripts': [
