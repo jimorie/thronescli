@@ -15,6 +15,11 @@ try:
     from urllib.request import urlretrieve
 except ImportError:
     from urllib import urlretrieve
+try:
+    basestring = basestring
+except NameError:
+    basestring = str
+
 
 from click import (
     ClickException,
