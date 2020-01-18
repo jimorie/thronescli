@@ -1,4 +1,4 @@
-version := $(shell python -c 'from thronescli.thronescli import __version__; print __version__')
+version := $(shell python -c 'from thronescli.thronescli import __version__; print(__version__)')
 
 dist:
 	.venv/bin/python2 setup.py bdist_wheel bdist_egg
