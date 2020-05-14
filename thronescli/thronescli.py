@@ -31,7 +31,6 @@ from click import (
     pass_context,
     secho,
     style,
-    unstyle
 )
 
 
@@ -39,43 +38,27 @@ __version__ = "1.4.4"
 
 
 CARDS_URL = "http://thronesdb.com/api/public/cards/"
-CARD_TYPES = [
-    "agenda",
-    "attachment",
-    "character",
-    "event",
-    "location",
-    "plot",
-    "title"
-]
+CARD_TYPES = ["agenda", "attachment", "character", "event", "location", "plot", "title"]
 FACTIONS = {
     "baratheon": {},
-    "greyjoy": {
-        "alias": ["gj"]
-    },
+    "greyjoy": {"alias": ["gj"]},
     "lannister": {},
     "martell": {},
-    "neutral": {
-        "name": "Neutral"
-    },
+    "neutral": {"name": "Neutral"},
     "stark": {},
     "targaryen": {},
     "thenightswatch": {
         "alias": ["nw", "night's watch", "the night's watch"],
-        "name": "The Night's Watch"
+        "name": "The Night's Watch",
     },
-    "tyrell": {}
+    "tyrell": {},
 }
 FACTION_ALIASES = {
     alias: faction
     for faction, data in FACTIONS.items()
     for alias in data.get("alias", []) + [faction]
 }
-ICONS = [
-    "military",
-    "intrigue",
-    "power"
-]
+ICONS = ["military", "intrigue", "power"]
 SORT_KEYS = [
     "cost",
     "claim",
@@ -88,7 +71,7 @@ SORT_KEYS = [
     "set",
     "str",
     "traits",
-    "type"
+    "type",
 ]
 COUNT_KEYS = [
     "cost",
@@ -105,107 +88,60 @@ COUNT_KEYS = [
     "str",
     "trait",
     "type",
-    "unique"
+    "unique",
 ]
 DB_KEY_MAPPING = {
     "faction": "faction_code",
-    "set"    : "pack_name",
-    "str"    : "strength",
-    "type"   : "type_code",
-    "loyal"  : "is_loyal",
-    "unique" : "is_unique",
-    "trait"  : "traits"
+    "set": "pack_name",
+    "str": "strength",
+    "type": "type_code",
+    "loyal": "is_loyal",
+    "unique": "is_unique",
+    "trait": "traits",
 }
-FIELD_NAME_MAPPING = {
-    v: k for k, v in DB_KEY_MAPPING.items()
-}
-DRAFT_PACKS = [
-    "VDS"
-]
-TEST_FALSE = [
-    "include_draft"
-]
+FIELD_NAME_MAPPING = {v: k for k, v in DB_KEY_MAPPING.items()}
+DRAFT_PACKS = ["VDS"]
+TEST_FALSE = ["include_draft"]
 TAG_PATTERN = re_compile("<.*?>")
 
 
 @command()
-@argument(
-    "search",
-    nargs=-1
-)
+@argument("search", nargs=-1)
+@option("--brief", is_flag=True, default=False, help="Show brief card data.")
+@option("--case", is_flag=True, default=False, help="Use case sensitive matching.")
 @option(
-    "--brief",
-    is_flag=True,
-    default=False,
-    help="Show brief card data."
+    "--claim", type=int, multiple=True, help="Find cards with given claim (inclusive)."
 )
+@option("--claim-gt", type=int, help="Find cards with greater than given claim.")
+@option("--claim-lt", type=int, help="Find cards with lower than given claim.")
 @option(
-    "--case",
-    is_flag=True,
-    default=False,
-    help="Use case sensitive matching."
+    "--cost", type=int, multiple=True, help="Find cards with given cost (inclusive)."
 )
-@option(
-    "--claim",
-    type=int,
-    multiple=True,
-    help="Find cards with given claim (inclusive)."
-)
-@option(
-    "--claim-gt",
-    type=int,
-    help="Find cards with greater than given claim."
-)
-@option(
-    "--claim-lt",
-    type=int,
-    help="Find cards with lower than given claim."
-)
-@option(
-    "--cost",
-    type=int,
-    multiple=True,
-    help="Find cards with given cost (inclusive)."
-)
-@option(
-    "--cost-gt",
-    type=int,
-    help="Find cards with greater than given cost."
-)
-@option(
-    "--cost-lt",
-    type=int,
-    help="Find cards with lower than given cost."
-)
+@option("--cost-gt", type=int, help="Find cards with greater than given cost.")
+@option("--cost-lt", type=int, help="Find cards with lower than given cost.")
 @option(
     "--count",
     multiple=True,
-    help="Show card count breakdown for given field. Possible fields are: {}.".format(", ".join(COUNT_KEYS))
+    help="Show card count breakdown for given field. Possible fields are: {}.".format(
+        ", ".join(COUNT_KEYS)
+    ),
 )
 @option(
-    "--count-only",
-    is_flag=True,
-    default=False,
-    help="Show card count breakdowns only."
+    "--count-only", is_flag=True, default=False, help="Show card count breakdowns only."
 )
-@option(
-    "--exact",
-    is_flag=True,
-    default=False,
-    help="Use exact matching."
-)
+@option("--exact", is_flag=True, default=False, help="Use exact matching.")
 @option(
     "--faction",
     "-f",
     multiple=True,
     help="Find cards with given faction (inclusive). Possible factions are: {}.".format(
         ", ".join(sorted(FACTION_ALIASES.keys()))
-    )
+    ),
 )
 @option(
     "--faction-isnt",
     multiple=True,
-    help="Find cards with other than given faction (exclusive)."
+    help="Find cards with other than given faction (exclusive).",
 )
 @option(
     "--group",
@@ -213,197 +149,138 @@ TAG_PATTERN = re_compile("<.*?>")
     help=(
         "Sort resulting cards by the given field and print group headers. "
         "Possible fields are: {}."
-    ).format(", ".join(COUNT_KEYS))
+    ).format(", ".join(COUNT_KEYS)),
 )
 @option(
     "--illustrator",
     multiple=True,
-    help="Find cards by the given illustrator (inclusive)."
+    help="Find cards by the given illustrator (inclusive).",
 )
 @option(
     "--income",
     type=int,
     multiple=True,
-    help="Find cards with given income (inclusive)."
+    help="Find cards with given income (inclusive).",
 )
-@option(
-    "--income-gt",
-    type=int,
-    help="Find cards with greater than given income."
-)
-@option(
-    "--income-lt",
-    type=int,
-    help="Find cards with lower than given income."
-)
+@option("--income-gt", type=int, help="Find cards with greater than given income.")
+@option("--income-lt", type=int, help="Find cards with lower than given income.")
 @option(
     "--initiative",
     type=int,
     multiple=True,
-    help="Find cards with given initiative (inclusive)."
+    help="Find cards with given initiative (inclusive).",
 )
 @option(
-    "--initiative-gt",
-    type=int,
-    help="Find cards with greater than given initiative."
+    "--initiative-gt", type=int, help="Find cards with greater than given initiative."
 )
 @option(
-    "--initiative-lt",
-    type=int,
-    help="Find cards with lower than given initiative."
+    "--initiative-lt", type=int, help="Find cards with lower than given initiative."
 )
 @option(
     "--icon",
     multiple=True,
-    help="Find cards with given icon (exclusive). Possible icons are: {}.".format(", ".join(ICONS))
+    help="Find cards with given icon (exclusive). Possible icons are: {}.".format(
+        ", ".join(ICONS)
+    ),
 )
-@option(
-    "--icon-isnt",
-    multiple=True,
-    help="Find cards without given icon (exclusive)."
-)
+@option("--icon-isnt", multiple=True, help="Find cards without given icon (exclusive).")
 @option(
     "--inclusive",
     is_flag=True,
     default=False,
-    help="Treat multiple options of the same type as inclusive rather than exclusive. (Or-logic instead of and-logic.)"
+    help=(
+        "Treat multiple options of the same type as inclusive rather than exclusive. "
+        "(Or-logic instead of and-logic.)"
+    ),
 )
 @option(
     "--include-draft",
     is_flag=True,
     default=False,
-    help="Include cards only legal in draft format."
+    help="Include cards only legal in draft format.",
 )
-@option(
-    "--name",
-    help="Find cards with matching name. (This is the default search.)"
-)
-@option(
-    "--loyal",
-    is_flag=True,
-    help="Find loyal cards."
-)
-@option(
-    "--non-loyal",
-    is_flag=True,
-    help="Find non-loyal cards."
-)
-@option(
-    "--non-unique",
-    is_flag=True,
-    help="Find non-unique cards."
-)
-@option(
-    "--reserve",
-    type=int,
-    help="Find cards with given reserve."
-)
-@option(
-    "--reserve-gt",
-    type=int,
-    help="Find cards with greater than given reserve."
-)
-@option(
-    "--reserve-lt",
-    type=int,
-    help="Find cards with lower than given reserve."
-)
-@option(
-    "--regex",
-    "-r",
-    is_flag=True,
-    help="Use regular expression matching."
-)
+@option("--name", help="Find cards with matching name. (This is the default search.)")
+@option("--loyal", is_flag=True, help="Find loyal cards.")
+@option("--non-loyal", is_flag=True, help="Find non-loyal cards.")
+@option("--non-unique", is_flag=True, help="Find non-unique cards.")
+@option("--reserve", type=int, help="Find cards with given reserve.")
+@option("--reserve-gt", type=int, help="Find cards with greater than given reserve.")
+@option("--reserve-lt", type=int, help="Find cards with lower than given reserve.")
+@option("--regex", "-r", is_flag=True, help="Use regular expression matching.")
 @option(
     "--set",
     multiple=True,
-    help="Find cards from matching expansion sets (inclusive). Implies --include-draft."
+    help=(
+        "Find cards from matching expansion sets (inclusive). Implies --include-draft."
+    ),
 )
 @option(
     "--show",
     multiple=True,
-    help="Show only given fields in non-verbose mode. Possible fields are: {}.".format(", ".join(COUNT_KEYS))
+    help="Show only given fields in non-verbose mode. Possible fields are: {}.".format(
+        ", ".join(COUNT_KEYS)
+    ),
 )
 @option(
     "--sort",
     multiple=True,
-    help="Sort resulting cards by the given field. Possible fields are: {}.".format(", ".join(SORT_KEYS))
+    help="Sort resulting cards by the given field. Possible fields are: {}.".format(
+        ", ".join(SORT_KEYS)
+    ),
 )
+@option("--str", type=int, help="Find cards with given strength.")
+@option("--str-gt", type=int, help="Find cards with greater than given strength.")
+@option("--str-lt", type=int, help="Find cards with lower than given strength.")
+@option("--text", multiple=True, help="Find cards with matching text (exclusive).")
 @option(
-    "--str",
-    type=int,
-    help="Find cards with given strength."
+    "--text-isnt", multiple=True, help="Find cards without matching text (exclusive)."
 )
+@option("--trait", multiple=True, help="Find cards with matching trait (exclusive).")
 @option(
-    "--str-gt",
-    type=int,
-    help="Find cards with greater than given strength."
-)
-@option(
-    "--str-lt",
-    type=int,
-    help="Find cards with lower than given strength."
-)
-@option(
-    "--text",
-    multiple=True,
-    help="Find cards with matching text (exclusive)."
-)
-@option(
-    "--text-isnt",
-    multiple=True,
-    help="Find cards without matching text (exclusive)."
-)
-@option(
-    "--trait",
-    multiple=True,
-    help="Find cards with matching trait (exclusive)."
-)
-@option(
-    "--trait-isnt",
-    multiple=True,
-    help="Find cards without matching trait (exclusive)."
+    "--trait-isnt", multiple=True, help="Find cards without matching trait (exclusive)."
 )
 @option(
     "--type",
     "-t",
     multiple=True,
-    help="Find cards with matching card type (inclusive). Possible types are: {}.".format(", ".join(CARD_TYPES))
+    help=(
+        "Find cards with matching card type (inclusive). "
+        "Possible types are: {}.".format(", ".join(CARD_TYPES))
+    ),
 )
-@option(
-    "--unique",
-    is_flag=True,
-    help="Find unique cards."
-)
+@option("--unique", is_flag=True, help="Find unique cards.")
 @option(
     "--update",
     is_flag=True,
     default=False,
-    help="Fetch new card data from thronesdb.com."
+    help="Fetch new card data from thronesdb.com.",
 )
 @option(
     "--verbose",
     "-v",
     count=True,
-    help="Show verbose card data. Use twice (-vv) for all data."
+    help="Show verbose card data. Use twice (-vv) for all data.",
 )
 @option(
     "--version",
     is_flag=True,
     default=False,
-    help="Show the thronescli version: {}.".format(__version__)
+    help="Show the thronescli version: {}.".format(__version__),
 )
 @pass_context
-def main (ctx, search, **options):
+def main(ctx, search, **options):
     """
-    A command line interface for the thronesdb.com card database for A Game of Thrones LCG 2nd Ed.
+    A command line interface for the thronesdb.com card database for A Game of
+    Thrones LCG 2nd Ed.
 
-    The default search argument matches cards against their name, text or traits. See below for more options.
+    The default search argument matches cards against their name, text or
+    traits. See below for more options.
 
-    Options marked with inclusive or exclusive can be repeated to further include or exclude cards, respectively.
+    Options marked with inclusive or exclusive can be repeated to further
+    include or exclude cards, respectively.
 
-    For help and bug reports visit the project on GitHub: https://github.com/jimorie/thronescli
-    """
+    For help and bug reports visit the project on GitHub:
+    https://github.com/jimorie/thronescli """
     preprocess_options(search, options)
     if options["version"]:
         echo(__version__)
@@ -439,10 +316,10 @@ def main (ctx, search, **options):
                             u" | ".join(
                                 format_card_field(card, group, color=False)
                                 for group in options["group"]
-                            ),
+                            )
                         ),
                         fg="yellow",
-                        bold=True
+                        bold=True,
                     )
                     echo("")
                     prevgroup = thisgroup
@@ -450,7 +327,7 @@ def main (ctx, search, **options):
     print_counts(counts, options, total)
 
 
-def preprocess_options (search, options):
+def preprocess_options(search, options):
     preprocess_search(options, search)
     preprocess_regex(options)
     preprocess_case(options)
@@ -461,11 +338,11 @@ def preprocess_options (search, options):
     preprocess_type(options)
 
 
-def preprocess_search (options, search):
+def preprocess_search(options, search):
     options["name"] = " ".join(search) if search else None
 
 
-def preprocess_regex (options):
+def preprocess_regex(options):
     flags = IGNORECASE if not options["case"] else 0
     if options["regex"]:
         if options["name"]:
@@ -484,7 +361,7 @@ def preprocess_regex (options):
             )
 
 
-def preprocess_case (options):
+def preprocess_case(options):
     if not options["case"] and not options["regex"]:
         if options["name"]:
             options["name"] = options["name"].lower()
@@ -493,41 +370,50 @@ def preprocess_case (options):
         if options["text"]:
             options["text"] = tuple(value.lower() for value in options["text"])
         if options["text_isnt"]:
-            options["text_isnt"] = tuple(value.lower() for value in options["text_isnt"])
+            options["text_isnt"] = tuple(
+                value.lower() for value in options["text_isnt"]
+            )
         if options["illustrator"]:
-            options["illustrator"] = tuple(value.lower() for value in options["illustrator"])
+            options["illustrator"] = tuple(
+                value.lower() for value in options["illustrator"]
+            )
         if options["set"]:
             options["set"] = tuple(value.lower() for value in options["set"])
 
 
-def preprocess_faction (options):
-    def postprocess_faction_value (value):
+def preprocess_faction(options):
+    def postprocess_faction_value(value):
         return FACTION_ALIASES[value]
+
     aliases = FACTION_ALIASES.keys()
-    preprocess_field(options, "faction", aliases, postprocess_value=postprocess_faction_value)
-    preprocess_field(options, "faction_isnt", aliases, postprocess_value=postprocess_faction_value)
+    preprocess_field(
+        options, "faction", aliases, postprocess_value=postprocess_faction_value
+    )
+    preprocess_field(
+        options, "faction_isnt", aliases, postprocess_value=postprocess_faction_value
+    )
 
 
-def preprocess_icon (options):
+def preprocess_icon(options):
     preprocess_field(options, "icon", ICONS)
     preprocess_field(options, "icon_isnt", ICONS)
 
 
-def preprocess_sort (options):
+def preprocess_sort(options):
     preprocess_field(options, "group", COUNT_KEYS, postprocess_value=get_field_db_key)
     preprocess_field(options, "sort", SORT_KEYS, postprocess_value=get_field_db_key)
     preprocess_field(options, "show", COUNT_KEYS, postprocess_value=get_field_db_key)
 
 
-def preprocess_count (options):
+def preprocess_count(options):
     preprocess_field(options, "count", COUNT_KEYS, postprocess_value=get_field_db_key)
 
 
-def preprocess_type (options):
+def preprocess_type(options):
     preprocess_field(options, "type", CARD_TYPES)
 
 
-def preprocess_field (options, field, candidates, postprocess_value=None):
+def preprocess_field(options, field, candidates, postprocess_value=None):
     if options[field]:
         values = list(options[field])
         for i in range(len(values)):
@@ -535,18 +421,18 @@ def preprocess_field (options, field, candidates, postprocess_value=None):
             value = value.lower()
             value = get_single_match(value, candidates)
             if value is None:
-                raise ClickException("no such --{} argument: {}.  (Possible arguments: {})".format(
-                    get_field_name(field),
-                    values[i],
-                    ", ".join(candidates)
-                ))
+                raise ClickException(
+                    "no such --{} argument: {}.  (Possible arguments: {})".format(
+                        get_field_name(field), values[i], ", ".join(candidates)
+                    )
+                )
             if postprocess_value:
                 value = postprocess_value(value)
             values[i] = value
         options[field] = tuple(values)
 
 
-def get_single_match (value, candidates):
+def get_single_match(value, candidates):
     found = None
     for candidate in candidates:
         if candidate.startswith(value):
@@ -556,19 +442,19 @@ def get_single_match (value, candidates):
     return found
 
 
-def get_field_name (field):
-    return field[:-len("_isnt")] if field.endswith("_isnt") else field
+def get_field_name(field):
+    return field[: -len("_isnt")] if field.endswith("_isnt") else field
 
 
-def get_field_db_key (field):
+def get_field_db_key(field):
     return DB_KEY_MAPPING.get(field, field)
 
 
-def get_faction_name (faction_code):
+def get_faction_name(faction_code):
     return FACTIONS[faction_code].get("name", "House {}".format(capwords(faction_code)))
 
 
-def load_cards (options):
+def load_cards(options):
     cards_file = get_cards_file()
     if not isfile(cards_file):
         update_cards()
@@ -576,7 +462,7 @@ def load_cards (options):
         return load(f)
 
 
-def update_cards ():
+def update_cards():
     cards_file = get_cards_file()
     try:
         remove(cards_file)
@@ -585,7 +471,7 @@ def update_cards ():
     urlretrieve(CARDS_URL, cards_file)
 
 
-def get_cards_file ():
+def get_cards_file():
     try:
         mkdir(get_app_dir("thronescli"))
     except OSError:
@@ -593,13 +479,13 @@ def get_cards_file ():
     return join(get_app_dir("thronescli"), "cards.json")
 
 
-def filter_cards (cards, options):
+def filter_cards(cards, options):
     for card in cards:
         if test_card(card, options):
             yield card
 
 
-def test_card (card, options):
+def test_card(card, options):
     for option_name, value in options.items():
         test = CardFilters.get_test(option_name)
         if test and (value or type(value) is int or option_name in TEST_FALSE):
@@ -608,22 +494,26 @@ def test_card (card, options):
     return True
 
 
-class CardFilters (object):
+class CardFilters(object):
     @classmethod
-    def get_test (cls, option):
+    def get_test(cls, option):
         try:
             return getattr(cls, "test_" + option)
         except AttributeError:
             return None
 
     @staticmethod
-    def match_value (value, card_value, options):
+    def match_value(value, card_value, options):
         if card_value is None:
             return False
         if hasattr(value, "search"):
             match = value.search(card_value)
             if options["exact"]:
-                return match is not None and match.start() == 0 and match.end() == len(card_value)
+                return (
+                    match is not None
+                    and match.start() == 0
+                    and match.end() == len(card_value)
+                )
             else:
                 return match is not None
         else:
@@ -632,128 +522,136 @@ class CardFilters (object):
             return value == card_value if options["exact"] else value in card_value
 
     @staticmethod
-    def test_claim (card, values, options):
+    def test_claim(card, values, options):
         return any(card["claim"] == value for value in values)
 
     @staticmethod
-    def test_claim_gt (card, value, options):
+    def test_claim_gt(card, value, options):
         return type(card["claim"]) is int and card["claim"] > value
 
     @staticmethod
-    def test_claim_lt (card, value, options):
+    def test_claim_lt(card, value, options):
         return type(card["claim"]) is int and card["claim"] < value
 
     @staticmethod
-    def test_cost (card, values, options):
+    def test_cost(card, values, options):
         return any(card["cost"] == value for value in values)
 
     @staticmethod
-    def test_cost_gt (card, value, options):
+    def test_cost_gt(card, value, options):
         return type(card["cost"]) is int and card["cost"] > value
 
     @staticmethod
-    def test_cost_lt (card, value, options):
+    def test_cost_lt(card, value, options):
         return type(card["cost"]) is int and card["cost"] < value
 
     @staticmethod
-    def test_faction (card, values, options):
+    def test_faction(card, values, options):
         return any(card["faction_code"] == value for value in values)
 
     @staticmethod
-    def test_faction_isnt (card, values, options):
-        return all(not card["faction_code"].startswith(value.lower()) for value in values)
+    def test_faction_isnt(card, values, options):
+        return all(
+            not card["faction_code"].startswith(value.lower()) for value in values
+        )
 
     @staticmethod
-    def test_income (card, values, options):
+    def test_income(card, values, options):
         return any(card["income"] == value for value in values)
 
     @staticmethod
-    def test_income_gt (card, value, options):
+    def test_income_gt(card, value, options):
         return type(card["income"]) is int and card["income"] > value
 
     @staticmethod
-    def test_income_lt (card, value, options):
+    def test_income_lt(card, value, options):
         return type(card["income"]) is int and card["income"] < value
 
     @staticmethod
-    def test_initiative (card, values, options):
+    def test_initiative(card, values, options):
         return any(card["initiative"] == value for value in values)
 
     @staticmethod
-    def test_initiative_gt (card, value, options):
+    def test_initiative_gt(card, value, options):
         return type(card["initiative"]) is int and card["initiative"] > value
 
     @staticmethod
-    def test_initiative_lt (card, value, options):
+    def test_initiative_lt(card, value, options):
         return type(card["initiative"]) is int and card["initiative"] < value
 
     @staticmethod
-    def test_illustrator (card, values, options):
-        return any(CardFilters.match_value(value, card["illustrator"], options) for value in values)
+    def test_illustrator(card, values, options):
+        return any(
+            CardFilters.match_value(value, card["illustrator"], options)
+            for value in values
+        )
 
     @staticmethod
-    def test_icon (card, values, options):
+    def test_icon(card, values, options):
         any_or_all = any if options["inclusive"] else all
         return any_or_all(card["is_{}".format(value)] for value in values)
 
     @staticmethod
-    def test_icon_isnt (card, values, options):
+    def test_icon_isnt(card, values, options):
         any_or_all = any if options["inclusive"] else all
         return any_or_all(not card["is_{}".format(value)] for value in values)
 
     @staticmethod
-    def test_include_draft (card, value, options):
+    def test_include_draft(card, value, options):
         return options["set"] or value or card["pack_code"] not in DRAFT_PACKS
 
     @staticmethod
-    def test_name (card, value, options):
+    def test_name(card, value, options):
         return CardFilters.match_value(value, card["name"], options)
 
     @staticmethod
-    def test_loyal (card, values, options):
+    def test_loyal(card, values, options):
         return card["is_loyal"] is True
 
     @staticmethod
-    def test_non_loyal (card, values, options):
+    def test_non_loyal(card, values, options):
         return card["is_loyal"] is False
 
     @staticmethod
-    def test_non_unique (card, values, options):
+    def test_non_unique(card, values, options):
         return card["is_unique"] is False
 
     @staticmethod
-    def test_reserve (card, values, options):
+    def test_reserve(card, values, options):
         return any(card["reserve"] == value for value in values)
 
     @staticmethod
-    def test_reserve_gt (card, value, options):
+    def test_reserve_gt(card, value, options):
         return type(card["reserve"]) is int and card["reserve"] > value
 
     @staticmethod
-    def test_reserve_lt (card, value, options):
+    def test_reserve_lt(card, value, options):
         return type(card["reserve"]) is int and card["reserve"] < value
 
     @staticmethod
-    def test_set (card, values, options):
-        return (
-            any(CardFilters.match_value(value, card["pack_name"], options) for value in values)
-            or any(CardFilters.match_value(value, card["pack_code"], options) for value in values)
+    def test_set(card, values, options):
+        return any(
+            CardFilters.match_value(value, card["pack_name"], options)
+            for value in values
+        ) or any(
+            CardFilters.match_value(value, card["pack_code"], options)
+            for value in values
         )
 
     @staticmethod
-    def test_str (card, values, options):
+    def test_str(card, values, options):
         return any(card["strength"] == value for value in values)
 
     @staticmethod
-    def test_str_gt (card, value, options):
+    def test_str_gt(card, value, options):
         return type(card["strength"]) is int and card["strength"] > value
 
     @staticmethod
-    def test_str_lt (card, value, options):
+    def test_str_lt(card, value, options):
         return type(card["strength"]) is int and card["strength"] < value
 
     @staticmethod
-    def test_text (card, values, options):
+    def test_text(card, values, options):
         any_or_all = any if options["inclusive"] else all
         return any_or_all(
             CardFilters.match_value(value, strip_markup(card["text"]), options)
@@ -761,7 +659,7 @@ class CardFilters (object):
         )
 
     @staticmethod
-    def test_text_isnt (card, values, options):
+    def test_text_isnt(card, values, options):
         any_or_all = any if options["inclusive"] else all
         return any_or_all(
             not CardFilters.match_value(value, strip_markup(card["text"]), options)
@@ -769,34 +667,38 @@ class CardFilters (object):
         )
 
     @staticmethod
-    def test_trait (card, values, options):
-        traits = [trait.strip() for trait in card["traits"].split(".")]
-        any_or_all = any if options["inclusive"] else all
-        return any_or_all(any(CardFilters.match_value(value, trait, options) for trait in traits) for value in values)
-
-    @staticmethod
-    def test_trait_isnt (card, values, options):
+    def test_trait(card, values, options):
         traits = [trait.strip() for trait in card["traits"].split(".")]
         any_or_all = any if options["inclusive"] else all
         return any_or_all(
-            not any(CardFilters.match_value(value, trait, options) for trait in traits) for value in values
+            any(CardFilters.match_value(value, trait, options) for trait in traits)
+            for value in values
         )
 
     @staticmethod
-    def test_type (card, values, options):
+    def test_trait_isnt(card, values, options):
+        traits = [trait.strip() for trait in card["traits"].split(".")]
+        any_or_all = any if options["inclusive"] else all
+        return any_or_all(
+            not any(CardFilters.match_value(value, trait, options) for trait in traits)
+            for value in values
+        )
+
+    @staticmethod
+    def test_type(card, values, options):
         return any(card["type_code"].startswith(value.lower()) for value in values)
 
     @staticmethod
-    def test_unique (card, values, options):
+    def test_unique(card, values, options):
         return card["is_unique"] is True
 
 
 def sortkey(*sortfields):
     def _sortkey(card):
-        l = []
+        sortkey = []
         for field in sortfields:
             if field in card:
-                l.append(card[field])
+                sortkey.append(card[field])
             elif field == "icon":
                 iconscore = 0
                 if card["is_military"]:
@@ -805,21 +707,22 @@ def sortkey(*sortfields):
                     iconscore -= 11
                 if card["is_power"]:
                     iconscore -= 10
-                l.append(iconscore)
+                sortkey.append(iconscore)
             else:
-                l.append(format_card_field(card, field, color=False))
-        return l
+                sortkey.append(format_card_field(card, field, color=False))
+        return sortkey
+
     return _sortkey
 
 
-def sort_cards (cards, options):
+def sort_cards(cards, options):
     if options["sort"] or options["group"]:
         sortfields = options["group"] + options["sort"]
         return sorted(cards, key=sortkey(*sortfields))
     return cards
 
 
-def count_cards (cards, options):
+def count_cards(cards, options):
     counts = defaultdict(lambda: defaultdict(int))
     total = 0
     for card in cards:
@@ -838,13 +741,15 @@ def count_cards (cards, options):
                     if card[count_field]:
                         counts[count_field][format_field_name(count_field)] += 1
                     else:
-                        counts[count_field]["Non-" + format_field_name(count_field)] += 1
+                        counts[count_field][
+                            "Non-" + format_field_name(count_field)
+                        ] += 1
                 elif card[count_field] or type(card[count_field]) is int:
                     counts[count_field][card[count_field]] += 1
     return counts, total
 
 
-def print_card (card, options):
+def print_card(card, options):
     if options["verbose"]:
         print_verbose_card(card, options)
     elif options["brief"]:
@@ -855,38 +760,44 @@ def print_card (card, options):
         print_brief_card(card, options)
 
 
-def print_verbose_card (card, options):
+def print_verbose_card(card, options):
     secho(card["name"], fg="cyan", bold=True)
     if card["traits"]:
         secho(card["traits"], fg="magenta", bold=True)
     if card["text"]:
         print_markup(card["text"])
-    print_verbose_fields(card, [
-        ("Income",     "income"),
-        ("Initiative", "initiative"),
-        ("Claim",      "claim"),
-        ("Reserve",    "reserve"),
-        ("Cost",       "cost"),
-        ("STR",        "strength")
-    ])
+    print_verbose_fields(
+        card,
+        [
+            ("Income", "income"),
+            ("Initiative", "initiative"),
+            ("Claim", "claim"),
+            ("Reserve", "reserve"),
+            ("Cost", "cost"),
+            ("STR", "strength"),
+        ],
+    )
     if card["type_code"] == "character":
         secho("Icons: ", bold=True, nl=False)
         secho(format_card_field(card, "icon"))
     if options["verbose"] > 1:
-        print_verbose_fields(card, [
-            ("Faction",     "faction_name"),
-            ("Loyal",       "is_loyal"),
-            ("Unique",      "is_unique"),
-            ("Deck Limit",  "deck_limit"),
-            ("Expansion",   "pack_name"),
-            ("Card #",      "position"),
-            ("Illustrator", "illustrator"),
-            ("Flavor Text", "flavor")
-        ])
+        print_verbose_fields(
+            card,
+            [
+                ("Faction", "faction_name"),
+                ("Loyal", "is_loyal"),
+                ("Unique", "is_unique"),
+                ("Deck Limit", "deck_limit"),
+                ("Expansion", "pack_name"),
+                ("Card #", "position"),
+                ("Illustrator", "illustrator"),
+                ("Flavor Text", "flavor"),
+            ],
+        )
     echo("")
 
 
-def print_verbose_fields (card, fields):
+def print_verbose_fields(card, fields):
     for name, field in fields:
         value = card.get(field)
         if value is not None:
@@ -901,7 +812,7 @@ def print_verbose_fields (card, fields):
                 echo(value)
 
 
-def print_brief_card (card, options, show=None):
+def print_brief_card(card, options, show=None):
     if show is None:
         show = ["unique", "loyal", "faction", "type"]
         if card["type_code"] == "character":
@@ -918,13 +829,13 @@ def print_brief_card (card, options, show=None):
     secho("")
 
 
-def print_markup (text):
+def print_markup(text):
     for styled_text in parse_markup(text):
         echo(styled_text, nl=False)
     echo("")
 
 
-def parse_markup (text):
+def parse_markup(text):
     """Very simple markup parser. Does not support nested tags."""
     kwargs = {}
     beg = 0
@@ -950,17 +861,21 @@ def parse_markup (text):
             break
 
 
-def strip_markup (text):
+def strip_markup(text):
     return TAG_PATTERN.sub("", text)
 
 
-def print_counts (counts, options, total):
+def print_counts(counts, options, total):
     if not options["verbose"] and not options["count_only"]:
         echo("")
     for count_field, count_data in counts.items():
         items = list(count_data.items())
         items.sort(key=itemgetter(1), reverse=True)
-        secho("[ {} counts ]".format(format_field_name(count_field)), fg="green", bold=True)
+        secho(
+            "[ {} counts ]".format(format_field_name(count_field)),
+            fg="green",
+            bold=True,
+        )
         echo("")
         fill = 0
         for i in range(len(items)):
@@ -976,14 +891,14 @@ def print_counts (counts, options, total):
     echo(str(total))
 
 
-def format_field_name (field):
+def format_field_name(field):
     field = FIELD_NAME_MAPPING.get(field, field)
     if field in ["str"]:
         return field.upper()
     return capwords(field)
 
 
-def format_field (field, value, show_negation=True):
+def format_field(field, value, show_negation=True):
     if value is None:
         return "No {}".format(format_field_name(field))
     elif type(value) is int:
@@ -999,7 +914,7 @@ def format_field (field, value, show_negation=True):
     return str(value)
 
 
-def format_card_field (card, field, color=True, show_negation=True):
+def format_card_field(card, field, color=True, show_negation=True):
     if field == "icon":
         icons = []
         if card["is_military"]:

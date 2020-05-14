@@ -20,3 +20,6 @@ upload:
 	twine upload dist/*
 
 release: clean version dist upload
+
+format:
+	black thronescli
