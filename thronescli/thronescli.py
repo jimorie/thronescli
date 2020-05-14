@@ -867,7 +867,10 @@ def print_brief_card(card, options, show=None):
     for field in show:
         tmp = format_card_field(card, field, show_negation=False)
         if tmp:
-            secho(" {}.".format(tmp), nl=False)
+            if tmp.endswith("."):
+                secho(" {}".format(tmp), nl=False)
+            else:
+                secho(" {}.".format(tmp), nl=False)
     secho("")
 
 
@@ -978,7 +981,7 @@ def format_card_field(card, field, color=True, show_negation=True):
     elif field == "keyword":
         keywords = _parse_keywords(card["text"])
         if keywords:
-            return " ".join(kw.title() + "." for kw in keywords)
+            return " ".join(capwords(kw) + "." for kw in keywords)
     db_key = get_field_db_key(field)
     return format_field(field, card.get(db_key), show_negation=show_negation)
 
