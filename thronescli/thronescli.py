@@ -59,6 +59,17 @@ FACTION_ALIASES = {
     for alias in data.get("alias", []) + [faction]
 }
 ICONS = ["military", "intrigue", "power"]
+KEYWORDS = [
+    "ambush",
+    "insight",
+    "intimidate",
+    "limited",
+    "no attachments",
+    "pillage",
+    "renown",
+    "stealth",
+    "terminal",
+]
 SORT_KEYS = [
     "cost",
     "claim",
@@ -81,6 +92,7 @@ COUNT_KEYS = [
     "illustrator",
     "income",
     "initiative",
+    "keyword",
     "loyal",
     "name",
     "reserve",
@@ -240,6 +252,23 @@ TAG_PATTERN = re_compile("<.*?>")
     "--trait-isnt", multiple=True, help="Find cards without matching trait (exclusive)."
 )
 @option(
+    "--keyword",
+    multiple=True,
+    help=(
+        "Find cards with matching keyword (exclusive). Possible fields are: {}.".format(
+            ", ".join(KEYWORDS)
+        )
+    ),
+)
+@option(
+    "--keyword-isnt",
+    multiple=True,
+    help=(
+        "Find cards without matching keyword (exclusive). "
+        "Possible fields are: {}.".format(", ".join(KEYWORDS))
+    ),
+)
+@option(
     "--type",
     "-t",
     multiple=True,
@@ -336,6 +365,7 @@ def preprocess_options(search, options):
     preprocess_sort(options)
     preprocess_count(options)
     preprocess_type(options)
+    preprocess_keyword(options)
 
 
 def preprocess_search(options, search):
@@ -362,23 +392,17 @@ def preprocess_regex(options):
 
 
 def preprocess_case(options):
+    # These options are always case insensitive
+    opts = ("trait", "trait_isnt", "set", "keyword", "keyword_isnt")
+    for opt in opts:
+        options[opt] = tuple(value.lower() for value in options[opt])
     if not options["case"] and not options["regex"]:
+        # These options respect the case and regex options
+        opts = ("text", "text_isnt", "illustrator")
+        for opt in opts:
+            options[opt] = tuple(value.lower() for value in options[opt])
         if options["name"]:
             options["name"] = options["name"].lower()
-        if options["trait"]:
-            options["trait"] = tuple(value.lower() for value in options["trait"])
-        if options["text"]:
-            options["text"] = tuple(value.lower() for value in options["text"])
-        if options["text_isnt"]:
-            options["text_isnt"] = tuple(
-                value.lower() for value in options["text_isnt"]
-            )
-        if options["illustrator"]:
-            options["illustrator"] = tuple(
-                value.lower() for value in options["illustrator"]
-            )
-        if options["set"]:
-            options["set"] = tuple(value.lower() for value in options["set"])
 
 
 def preprocess_faction(options):
@@ -411,6 +435,11 @@ def preprocess_count(options):
 
 def preprocess_type(options):
     preprocess_field(options, "type", CARD_TYPES)
+
+
+def preprocess_keyword(options):
+    preprocess_field(options, "keyword", KEYWORDS)
+    preprocess_field(options, "keyword_isnt", KEYWORDS)
 
 
 def preprocess_field(options, field, candidates, postprocess_value=None):
@@ -675,14 +704,24 @@ class CardFilters(object):
             for value in values
         )
 
+    @classmethod
+    def test_trait_isnt(cls, card, values, options):
+        return not cls.test_trait(card, values, options)
+
     @staticmethod
-    def test_trait_isnt(card, values, options):
-        traits = [trait.strip() for trait in card["traits"].split(".")]
+    def test_keyword(card, values, options):
+        keywords = _parse_keywords(card["text"])
         any_or_all = any if options["inclusive"] else all
         return any_or_all(
-            not any(CardFilters.match_value(value, trait, options) for trait in traits)
+            any(
+                CardFilters.match_value(value, keyword, options) for keyword in keywords
+            )
             for value in values
         )
+
+    @classmethod
+    def test_keyword_isnt(cls, card, values, options):
+        return not cls.test_keyword(card, values, options)
 
     @staticmethod
     def test_type(card, values, options):
@@ -708,6 +747,9 @@ def sortkey(*sortfields):
                 if card["is_power"]:
                     iconscore -= 10
                 sortkey.append(iconscore)
+            elif field == "keyword":
+                keywordscore = format_card_field(card, field, color=False)
+                sortkey.append(keywordscore if keywordscore != "No Keywords" else "")
             else:
                 sortkey.append(format_card_field(card, field, color=False))
         return sortkey
@@ -737,6 +779,9 @@ def count_cards(cards, options):
                     for trait in card["traits"].split("."):
                         if trait:
                             counts[count_field][trait.strip()] += 1
+                elif count_field == "keyword":
+                    for keyword in _parse_keywords(card["text"]):
+                        counts[count_field][keyword] += 1
                 elif count_field in ["is_unique", "is_loyal"]:
                     if card[count_field]:
                         counts[count_field][format_field_name(count_field)] += 1
@@ -933,8 +978,27 @@ def format_card_field(card, field, color=True, show_negation=True):
             else:
                 icons.append("P")
         return " ".join(icons) if icons else "No Icons"
+    elif field == "keyword":
+        keywords = _parse_keywords(card["text"])
+        if keywords:
+            return " ".join(kw.title() + "." for kw in keywords)
+        return "No Keywords"
     db_key = get_field_db_key(field)
     return format_field(field, card.get(db_key), show_negation=show_negation)
+
+
+def _parse_keywords(text):
+    text = text.lower()
+    keywords = []
+    while True:
+        for keyword in KEYWORDS:
+            if text.startswith(keyword):
+                keywords.append(keyword)
+                text = text[text.find(".") + 1 :].strip()
+                break
+        else:
+            break
+    return keywords
 
 
 if __name__ == "__main__":
