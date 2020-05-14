@@ -952,7 +952,7 @@ def format_field(field, value, show_negation=True):
         if show_negation or value:
             return "{}{}".format("" if value else "Non-", format_field_name(field))
         return None
-    elif field == "faction_code":
+    elif field == "faction_code" or field == "faction":
         return get_faction_name(value)
     elif isinstance(value, basestring):
         return capwords(value)
