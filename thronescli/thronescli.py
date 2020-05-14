@@ -747,9 +747,6 @@ def sortkey(*sortfields):
                 if card["is_power"]:
                     iconscore -= 10
                 sortkey.append(iconscore)
-            elif field == "keyword":
-                keywordscore = format_card_field(card, field, color=False)
-                sortkey.append(keywordscore if keywordscore != "No Keywords" else "")
             else:
                 sortkey.append(format_card_field(card, field, color=False))
         return sortkey
@@ -982,7 +979,6 @@ def format_card_field(card, field, color=True, show_negation=True):
         keywords = _parse_keywords(card["text"])
         if keywords:
             return " ".join(kw.title() + "." for kw in keywords)
-        return "No Keywords"
     db_key = get_field_db_key(field)
     return format_field(field, card.get(db_key), show_negation=show_negation)
 
