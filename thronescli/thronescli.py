@@ -67,6 +67,7 @@ KEYWORDS = [
     "no attachments",
     "pillage",
     "renown",
+    "shadow",
     "stealth",
     "terminal",
 ]
