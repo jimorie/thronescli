@@ -737,7 +737,9 @@ def sortkey(*sortfields):
     def _sortkey(card):
         sortkey = []
         for field in sortfields:
-            if field in card:
+            if field == "traits":
+                sortkey.append(len(card["traits"].split(".")))
+            elif field in card:
                 sortkey.append(card[field])
             elif field == "icon":
                 iconscore = 0
