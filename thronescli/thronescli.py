@@ -3,7 +3,7 @@
 
 from collections import defaultdict
 from json import load
-from operator import itemgetter
+from operator import itemgetter, eq, ne, gt, ge, lt, le
 from os import mkdir, remove
 from os.path import join, isfile
 from re import compile as re_compile, IGNORECASE
@@ -23,6 +23,7 @@ except NameError:
 
 from click import (
     ClickException,
+    ParamType,
     argument,
     command,
     echo,
@@ -118,20 +119,40 @@ TEST_FALSE = ["include_draft"]
 TAG_PATTERN = re_compile("<.*?>")
 
 
+class IntComparison(ParamType):
+    name = "INT COMPARISON"
+    operators = {"==": eq, "!=": ne, "<": lt, "<=": le, ">": gt, ">=": ge}
+    parser = re_compile(r"^(==|!=|<|<=|>|>=)?\s*(\d+)$")
+
+    def convert(self, value, param, ctx):
+        match = self.parser.match(value.strip())
+        if not match:
+            self.fail("Invalid integer comparison: {}".format(value))
+        operator, number = match.groups()
+        func = eq if operator is None else self.operators[operator]
+        number = int(number)
+        return lambda x: func(x, number)
+
+
+INT_COMPARISON = IntComparison()
+
+
 @command()
 @argument("search", nargs=-1)
 @option("--brief", is_flag=True, default=False, help="Show brief card data.")
 @option("--case", is_flag=True, default=False, help="Use case sensitive matching.")
 @option(
-    "--claim", type=int, multiple=True, help="Find cards with given claim (inclusive)."
+    "--claim",
+    type=INT_COMPARISON,
+    multiple=True,
+    help="Find cards whose claim matches the expression (inclusive).",
 )
-@option("--claim-gt", type=int, help="Find cards with greater than given claim.")
-@option("--claim-lt", type=int, help="Find cards with lower than given claim.")
 @option(
-    "--cost", type=int, multiple=True, help="Find cards with given cost (inclusive)."
+    "--cost",
+    type=INT_COMPARISON,
+    multiple=True,
+    help="Find cards whose cost matches the expression (inclusive).",
 )
-@option("--cost-gt", type=int, help="Find cards with greater than given cost.")
-@option("--cost-lt", type=int, help="Find cards with lower than given cost.")
 @option(
     "--count",
     multiple=True,
@@ -171,23 +192,15 @@ TAG_PATTERN = re_compile("<.*?>")
 )
 @option(
     "--income",
-    type=int,
+    type=INT_COMPARISON,
     multiple=True,
-    help="Find cards with given income (inclusive).",
+    help="Find cards whose income matches the expression (inclusive).",
 )
-@option("--income-gt", type=int, help="Find cards with greater than given income.")
-@option("--income-lt", type=int, help="Find cards with lower than given income.")
 @option(
     "--initiative",
-    type=int,
+    type=INT_COMPARISON,
     multiple=True,
-    help="Find cards with given initiative (inclusive).",
-)
-@option(
-    "--initiative-gt", type=int, help="Find cards with greater than given initiative."
-)
-@option(
-    "--initiative-lt", type=int, help="Find cards with lower than given initiative."
+    help="Find cards whose initiative matches the expression (inclusive).",
 )
 @option(
     "--icon",
@@ -216,9 +229,11 @@ TAG_PATTERN = re_compile("<.*?>")
 @option("--loyal", is_flag=True, help="Find loyal cards.")
 @option("--non-loyal", is_flag=True, help="Find non-loyal cards.")
 @option("--non-unique", is_flag=True, help="Find non-unique cards.")
-@option("--reserve", type=int, help="Find cards with given reserve.")
-@option("--reserve-gt", type=int, help="Find cards with greater than given reserve.")
-@option("--reserve-lt", type=int, help="Find cards with lower than given reserve.")
+@option(
+    "--reserve",
+    type=INT_COMPARISON,
+    help="Find cards whose reserve matches the expression.",
+)
 @option("--regex", "-r", is_flag=True, help="Use regular expression matching.")
 @option(
     "--set",
@@ -241,9 +256,11 @@ TAG_PATTERN = re_compile("<.*?>")
         ", ".join(SORT_KEYS)
     ),
 )
-@option("--str", type=int, help="Find cards with given strength.")
-@option("--str-gt", type=int, help="Find cards with greater than given strength.")
-@option("--str-lt", type=int, help="Find cards with lower than given strength.")
+@option(
+    "--str",
+    type=INT_COMPARISON,
+    help="Find cards whose strength matches the expression.",
+)
 @option("--text", multiple=True, help="Find cards with matching text (exclusive).")
 @option(
     "--text-isnt", multiple=True, help="Find cards without matching text (exclusive)."
@@ -552,28 +569,12 @@ class CardFilters(object):
             return value == card_value if options["exact"] else value in card_value
 
     @staticmethod
-    def test_claim(card, values, options):
-        return any(card["claim"] == value for value in values)
+    def test_claim(card, tests, options):
+        return any(test(card["claim"]) for test in tests)
 
     @staticmethod
-    def test_claim_gt(card, value, options):
-        return type(card["claim"]) is int and card["claim"] > value
-
-    @staticmethod
-    def test_claim_lt(card, value, options):
-        return type(card["claim"]) is int and card["claim"] < value
-
-    @staticmethod
-    def test_cost(card, values, options):
-        return any(card["cost"] == value for value in values)
-
-    @staticmethod
-    def test_cost_gt(card, value, options):
-        return type(card["cost"]) is int and card["cost"] > value
-
-    @staticmethod
-    def test_cost_lt(card, value, options):
-        return type(card["cost"]) is int and card["cost"] < value
+    def test_cost(card, tests, options):
+        return any(test(card["cost"]) for test in tests)
 
     @staticmethod
     def test_faction(card, values, options):
@@ -586,28 +587,12 @@ class CardFilters(object):
         )
 
     @staticmethod
-    def test_income(card, values, options):
-        return any(card["income"] == value for value in values)
+    def test_income(card, tests, options):
+        return any(test(card["income"]) for test in tests)
 
     @staticmethod
-    def test_income_gt(card, value, options):
-        return type(card["income"]) is int and card["income"] > value
-
-    @staticmethod
-    def test_income_lt(card, value, options):
-        return type(card["income"]) is int and card["income"] < value
-
-    @staticmethod
-    def test_initiative(card, values, options):
-        return any(card["initiative"] == value for value in values)
-
-    @staticmethod
-    def test_initiative_gt(card, value, options):
-        return type(card["initiative"]) is int and card["initiative"] > value
-
-    @staticmethod
-    def test_initiative_lt(card, value, options):
-        return type(card["initiative"]) is int and card["initiative"] < value
+    def test_initiative(card, tests, options):
+        return any(test(card["initiative"]) for test in tests)
 
     @staticmethod
     def test_illustrator(card, values, options):
@@ -647,16 +632,8 @@ class CardFilters(object):
         return card["is_unique"] is False
 
     @staticmethod
-    def test_reserve(card, values, options):
-        return any(card["reserve"] == value for value in values)
-
-    @staticmethod
-    def test_reserve_gt(card, value, options):
-        return type(card["reserve"]) is int and card["reserve"] > value
-
-    @staticmethod
-    def test_reserve_lt(card, value, options):
-        return type(card["reserve"]) is int and card["reserve"] < value
+    def test_reserve(card, tests, options):
+        return any(test(card["reserve"]) for test in tests)
 
     @staticmethod
     def test_set(card, values, options):
@@ -669,16 +646,8 @@ class CardFilters(object):
         )
 
     @staticmethod
-    def test_str(card, values, options):
-        return any(card["strength"] == value for value in values)
-
-    @staticmethod
-    def test_str_gt(card, value, options):
-        return type(card["strength"]) is int and card["strength"] > value
-
-    @staticmethod
-    def test_str_lt(card, value, options):
-        return type(card["strength"]) is int and card["strength"] < value
+    def test_str(card, tests, options):
+        return any(test(card["strength"]) for test in tests)
 
     @staticmethod
     def test_text(card, values, options):
