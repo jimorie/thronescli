@@ -131,7 +131,7 @@ class IntComparison(ParamType):
         operator, number = match.groups()
         func = eq if operator is None else self.operators[operator]
         number = int(number)
-        return lambda x: func(x, number)
+        return lambda x: x is not None and func(x, number)
 
 
 INT_COMPARISON = IntComparison()
@@ -232,7 +232,8 @@ INT_COMPARISON = IntComparison()
 @option(
     "--reserve",
     type=INT_COMPARISON,
-    help="Find cards whose reserve matches the expression.",
+    multiple=True,
+    help="Find cards whose reserve matches the expression (inclusive).",
 )
 @option("--regex", "-r", is_flag=True, help="Use regular expression matching.")
 @option(
@@ -259,7 +260,8 @@ INT_COMPARISON = IntComparison()
 @option(
     "--str",
     type=INT_COMPARISON,
-    help="Find cards whose strength matches the expression.",
+    multiple=True,
+    help="Find cards whose strength matches the expression (inclusive).",
 )
 @option("--text", multiple=True, help="Find cards with matching text (exclusive).")
 @option(
