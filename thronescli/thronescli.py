@@ -62,6 +62,7 @@ FACTION_ALIASES = {
 ICONS = ["military", "intrigue", "power"]
 KEYWORDS = [
     "ambush",
+    "bestow",
     "insight",
     "intimidate",
     "limited",
