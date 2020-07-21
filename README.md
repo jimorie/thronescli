@@ -23,82 +23,86 @@ Options
 Thrones CLI has the following options as given by the --help option:
 
     Options:
-      --brief                  Show brief card data.
-      --case                   Use case sensitive matching.
-      --claim INTEGER          Find cards with given claim (inclusive).
-      --claim-gt INTEGER       Find cards with greater than given claim.
-      --claim-lt INTEGER       Find cards with lower than given claim.
-      --cost INTEGER           Find cards with given cost (inclusive).
-      --cost-gt INTEGER        Find cards with greater than given cost.
-      --cost-lt INTEGER        Find cards with lower than given cost.
-      --count TEXT             Show card count breakdown for given field. Possible
-                               fields are: cost, claim, faction, icon,
-                               illustrator, income, initiative, loyal, name,
-                               reserve, set, str, trait, type, unique.
-      --count-only             Show card count breakdowns only.
-      --exact                  Use exact matching.
-      -f, --faction TEXT       Find cards with given faction (inclusive). Possible
-                               factions are: baratheon, gj, greyjoy, lannister,
-                               martell, neutral, night's watch, nw, stark,
-                               targaryen, the night's watch, thenightswatch,
-                               tyrell.
-      --faction-isnt TEXT      Find cards with other than given faction
-                               (exclusive).
-      --group TEXT             Sort resulting cards by the given field and print
-                               group headers. Possible fields are: cost, claim,
-                               faction, icon, illustrator, income, initiative,
-                               loyal, name, reserve, set, str, trait, type,
-                               unique.
-      --illustrator TEXT       Find cards by the given illustrator (inclusive).
-      --income INTEGER         Find cards with given income (inclusive).
-      --income-gt INTEGER      Find cards with greater than given income.
-      --income-lt INTEGER      Find cards with lower than given income.
-      --initiative INTEGER     Find cards with given initiative (inclusive).
-      --initiative-gt INTEGER  Find cards with greater than given initiative.
-      --initiative-lt INTEGER  Find cards with lower than given initiative.
-      --icon TEXT              Find cards with given icon (exclusive). Possible
-                               icons are: military, intrigue, power.
-      --icon-isnt TEXT         Find cards without given icon (exclusive).
-      --inclusive              Treat multiple options of the same type as
-                               inclusive rather than exclusive. (Or-logic instead
-                               of and-logic.)
-      --include-draft          Include cards only legal in draft format.
-      --name TEXT              Find cards with matching name. (This is the default
-                               search.)
-      --name-only              Show only card names.
-      --loyal                  Find loyal cards.
-      --non-loyal              Find non-loyal cards.
-      --non-unique             Find non-unique cards.
-      --reserve INTEGER        Find cards with given reserve.
-      --reserve-gt INTEGER     Find cards with greater than given reserve.
-      --reserve-lt INTEGER     Find cards with lower than given reserve.
-      -r, --regex              Use regular expression matching.
-      --set TEXT               Find cards from matching expansion sets
-                               (inclusive). Implies --include-draft.
-      --show TEXT              Show only given fields in non-verbose mode.
-                               Possible fields are: cost, claim, faction, icon,
-                               illustrator, income, initiative, loyal, name,
-                               reserve, set, str, trait, type, unique.
-      --sort TEXT              Sort resulting cards by the given field. Possible
-                               fields are: cost, claim, faction, income,
-                               illustrator, initiative, name, reserve, set, str,
-                               traits, type.
-      --str INTEGER            Find cards with given strength.
-      --str-gt INTEGER         Find cards with greater than given strength.
-      --str-lt INTEGER         Find cards with lower than given strength.
-      --text TEXT              Find cards with matching text (exclusive).
-      --text-isnt TEXT         Find cards without matching text (exclusive).
-      --trait TEXT             Find cards with matching trait (exclusive).
-      --trait-isnt TEXT        Find cards without matching trait (exclusive).
-      -t, --type TEXT          Find cards with matching card type (inclusive).
-                               Possible types are: agenda, attachment, character,
-                               event, location, plot, title.
-      --unique                 Find unique cards.
-      --update                 Fetch new card data from thronesdb.com.
-      -v, --verbose            Show verbose card data. Use twice (-vv) for all
-                               data.
-      --version                Show the thronescli version: 1.4.0.
-      --help                   Show this message and exit.
+      --brief                      Show brief card data.
+      --case                       Use case sensitive matching.
+      --claim INT COMPARISON       Find cards whose claim matches the expression
+                                   (inclusive).
+      --cost INT COMPARISON        Find cards whose cost matches the expression
+                                   (inclusive).
+      --count TEXT                 Show card count breakdown for given field.
+                                   Possible fields are: cost, claim, faction,
+                                   icon, illustrator, income, initiative, keyword,
+                                   loyal, name, reserve, set, str, trait, type,
+                                   unique.
+      --count-only                 Show card count breakdowns only.
+      --exact                      Use exact matching.
+      -f, --faction TEXT           Find cards with given faction (inclusive).
+                                   Possible factions are: baratheon, gj, greyjoy,
+                                   lannister, martell, neutral, night's watch, nw,
+                                   stark, targaryen, the night's watch,
+                                   thenightswatch, tyrell.
+      --faction-isnt TEXT          Find cards with other than given faction
+                                   (exclusive).
+      --group TEXT                 Sort resulting cards by the given field and
+                                   print group headers. Possible fields are: cost,
+                                   claim, faction, icon, illustrator, income,
+                                   initiative, keyword, loyal, name, reserve, set,
+                                   str, trait, type, unique.
+      --illustrator TEXT           Find cards by the given illustrator
+                                   (inclusive).
+      --income INT COMPARISON      Find cards whose income matches the expression
+                                   (inclusive).
+      --initiative INT COMPARISON  Find cards whose initiative matches the
+                                   expression (inclusive).
+      --icon TEXT                  Find cards with given icon (exclusive).
+                                   Possible icons are: military, intrigue, power.
+      --icon-isnt TEXT             Find cards without given icon (exclusive).
+      --inclusive                  Treat multiple options of the same type as
+                                   inclusive rather than exclusive. (Or-logic
+                                   instead of and-logic.)
+      --include-draft              Include cards only legal in draft format.
+      --name TEXT                  Find cards with matching name. (This is the
+                                   default search.)
+      --loyal                      Find loyal cards.
+      --non-loyal                  Find non-loyal cards.
+      --non-unique                 Find non-unique cards.
+      --reserve INT COMPARISON     Find cards whose reserve matches the expression
+                                   (inclusive).
+      -r, --regex                  Use regular expression matching.
+      --set TEXT                   Find cards from matching expansion sets
+                                   (inclusive). Implies --include-draft.
+      --show TEXT                  Show only given fields in non-verbose mode.
+                                   Possible fields are: cost, claim, faction,
+                                   icon, illustrator, income, initiative, keyword,
+                                   loyal, name, reserve, set, str, trait, type,
+                                   unique.
+      --sort TEXT                  Sort resulting cards by the given field.
+                                   Possible fields are: cost, claim, faction,
+                                   income, illustrator, initiative, name, reserve,
+                                   set, str, traits, type.
+      --str INT COMPARISON         Find cards whose strength matches the
+                                   expression (inclusive).
+      --text TEXT                  Find cards with matching text (exclusive).
+      --text-isnt TEXT             Find cards without matching text (exclusive).
+      --trait TEXT                 Find cards with matching trait (exclusive).
+      --trait-isnt TEXT            Find cards without matching trait (exclusive).
+      --keyword TEXT               Find cards with matching keyword (exclusive).
+                                   Possible fields are: ambush, insight,
+                                   intimidate, limited, no attachments, pillage,
+                                   renown, shadow, stealth, terminal.
+      --keyword-isnt TEXT          Find cards without matching keyword
+                                   (exclusive). Possible fields are: ambush,
+                                   insight, intimidate, limited, no attachments,
+                                   pillage, renown, shadow, stealth, terminal.
+      -t, --type TEXT              Find cards with matching card type (inclusive).
+                                   Possible types are: agenda, attachment,
+                                   character, event, location, plot, title.
+      --unique                     Find unique cards.
+      --update                     Fetch new card data from thronesdb.com.
+      -v, --verbose                Show verbose card data. Use twice (-vv) for all
+                                   data.
+      --version                    Show the thronescli version: 1.6.1.
+      --help                       Show this message and exit.
 
 Examples
 --------
