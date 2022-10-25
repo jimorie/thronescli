@@ -35,11 +35,13 @@ from click import (
 )
 
 
-__version__ = "2.0.0"
+__version__ = "2.1.0"
 
 
 CARDS_URL = "http://thronesdb.com/api/public/cards/"
 CARD_TYPES = ["agenda", "attachment", "character", "event", "location", "plot", "title"]
+CARD_TYPES_LOYAL = ["attachment", "character", "event", "location", "plot"]
+CARD_TYPES_UNIQUE = ["attachment", "character", "location"]
 FACTIONS = {
     "baratheon": {},
     "greyjoy": {"alias": ["gj"]},
@@ -607,11 +609,15 @@ class CardFilters(object):
 
     @staticmethod
     def test_icon(card, values, options):
+        if card["type_code"] != "character":
+            return False
         any_or_all = any if options["inclusive"] else all
         return any_or_all(card["is_{}".format(value)] for value in values)
 
     @staticmethod
     def test_icon_isnt(card, values, options):
+        if card["type_code"] != "character":
+            return False
         any_or_all = any if options["inclusive"] else all
         return any_or_all(not card["is_{}".format(value)] for value in values)
 
@@ -625,15 +631,19 @@ class CardFilters(object):
 
     @staticmethod
     def test_loyal(card, values, options):
-        return card["is_loyal"] is True
+        return card["type_code"] in CARD_TYPES_LOYAL and card["is_loyal"] is True
 
     @staticmethod
     def test_non_loyal(card, values, options):
-        return card["is_loyal"] is False
+        return card["type_code"] in CARD_TYPES_LOYAL and card["is_loyal"] is False
+
+    @staticmethod
+    def test_unique(card, values, options):
+        return card["type_code"] in CARD_TYPES_UNIQUE and card["is_unique"] is True
 
     @staticmethod
     def test_non_unique(card, values, options):
-        return card["is_unique"] is False
+        return card["type_code"] in CARD_TYPES_UNIQUE and card["is_unique"] is False
 
     @staticmethod
     def test_reserve(card, tests, options):
@@ -700,10 +710,6 @@ class CardFilters(object):
     @staticmethod
     def test_type(card, values, options):
         return any(card["type_code"].startswith(value.lower()) for value in values)
-
-    @staticmethod
-    def test_unique(card, values, options):
-        return card["is_unique"] is True
 
 
 def sortkey(*sortfields):
