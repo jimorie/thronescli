@@ -35,7 +35,7 @@ from click import (
 )
 
 
-__version__ = "2.1.0"
+__version__ = "2.2.0"
 
 
 CARDS_URL = "http://thronesdb.com/api/public/cards/"
@@ -160,12 +160,10 @@ INT_COMPARISON = IntComparison()
 @option(
     "--count",
     multiple=True,
-    help="Show card count breakdown for given field. Possible fields are: {}.".format(
-        ", ".join(COUNT_KEYS)
-    ),
-)
-@option(
-    "--count-only", is_flag=True, default=False, help="Show card count breakdowns only."
+    help=(
+        "Show card count breakdown for given field. Increase verbosity to "
+        "also show individual cards. Possible fields are: {}."
+    ).format(", ".join(COUNT_KEYS)),
 )
 @option("--exact", is_flag=True, default=False, help="Use exact matching.")
 @option(
@@ -333,7 +331,8 @@ def main(ctx, search, **options):
     include or exclude cards, respectively.
 
     For help and bug reports visit the project on GitHub:
-    https://github.com/jimorie/thronescli """
+    https://github.com/jimorie/thronescli
+    """
     preprocess_options(search, options)
     if options["version"]:
         echo(__version__)
@@ -350,7 +349,9 @@ def main(ctx, search, **options):
     cards = sort_cards(cards, options)
     cards = list(cards)
     counts, total = count_cards(cards, options)
-    if options["verbose"] == 0 and options["brief"] is False and total == 1:
+    if options["count"]:
+        options["verbose"] -= 1
+    elif options["verbose"] == 0 and options["brief"] is False and total == 1:
         options["verbose"] = 1
     if options["show"]:
         options["verbose"] = 0
@@ -358,15 +359,15 @@ def main(ctx, search, **options):
     prevgroup = None
     groupkey = sortkey(*options["group"]) if options["group"] else None
     for card in cards:
-        if not options["count_only"]:
+        if options["verbose"] >= 0:
             if groupkey:
                 thisgroup = groupkey(card)
                 if thisgroup != prevgroup:
                     if prevgroup is not None and options["verbose"] < 1:
                         echo("")
                     secho(
-                        u"[ {} ]".format(
-                            u" | ".join(
+                        "[ {} ]".format(
+                            " | ".join(
                                 format_card_field(card, group, color=False)
                                 for group in options["group"]
                             )
@@ -893,7 +894,7 @@ def strip_markup(text):
 
 
 def print_counts(counts, options, total):
-    if not options["verbose"] and not options["count_only"]:
+    if options["verbose"] == 0:
         echo("")
     for count_field, count_data in counts.items():
         items = list(count_data.items())
