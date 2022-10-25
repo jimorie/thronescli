@@ -9,16 +9,7 @@ from os.path import join, isfile
 from re import compile as re_compile, IGNORECASE
 from string import capwords
 from sys import argv
-
-# Try import py3 libs first, fall back to py2
-try:
-    from urllib.request import urlretrieve
-except ImportError:
-    from urllib import urlretrieve
-try:
-    basestring = basestring
-except NameError:
-    basestring = str
+from urllib.request import urlretrieve
 
 
 from click import (
@@ -937,7 +928,7 @@ def format_field(field, value, show_negation=True):
         return None
     elif field == "faction_code" or field == "faction":
         return get_faction_name(value)
-    elif isinstance(value, basestring):
+    elif isinstance(value, str):
         return capwords(value)
     return str(value)
 
