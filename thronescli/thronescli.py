@@ -117,7 +117,7 @@ TAG_PATTERN = re_compile("<.*?>")
 class IntComparison(ParamType):
     name = "NUMBER COMPARISON"
     operators = {"==": eq, "!=": ne, "<": lt, "<=": le, ">": gt, ">=": ge}
-    parser = re_compile(r"^(==|!=|<|<=|>|>=)?\s*(\d+)$")
+    parser = re_compile(r"^(==|!=|<|<=|>|>=)?\s*(\d+|[xX])$")
 
     def convert(self, value, param=None, ctx=None):
         """
@@ -149,8 +149,13 @@ class IntComparison(ParamType):
             self.fail("Invalid integer comparison: {}".format(value))
         operator, number = match.groups()
         func = eq if operator is None else self.operators[operator]
-        number = int(number)
-        return lambda x: x is not None and func(x, number)
+        number = int(number) if number not in ("x", "X") else None
+        def compare(x):
+            try:
+                return func(x, number)
+            except TypeError:
+                return False
+        return compare
 
 
 INT_COMPARISON = IntComparison()
@@ -869,50 +874,54 @@ def print_verbose_card(card, options):
         secho(card["traits"], fg="magenta", bold=True)
     if card["text"]:
         print_markup(card["text"])
-    print_verbose_fields(
-        card,
-        [
+    fields = []
+    if card["type_code"] == "plot":
+        fields += [
             ("Income", "income"),
             ("Initiative", "initiative"),
             ("Claim", "claim"),
             ("Reserve", "reserve"),
+        ]
+    if card["type_code"] in ("character", "location", "attachment", "event"):
+        fields += [
             ("Cost", "cost"),
+        ]
+    if card["type_code"] in ("character"):
+        fields += [
             ("STR", "strength"),
-        ],
-    )
-    if card["type_code"] == "character":
-        secho("Icons: ", bold=True, nl=False)
-        secho(format_card_field(card, "icon"))
+            ("Icons", "icon"),
+        ]
     if options["verbose"] > 1:
-        print_verbose_fields(
-            card,
-            [
-                ("Faction", "faction_name"),
-                ("Loyal", "is_loyal"),
-                ("Unique", "is_unique"),
-                ("Deck Limit", "deck_limit"),
-                ("Expansion", "pack_name"),
-                ("Card #", "position"),
-                ("Illustrator", "illustrator"),
-                ("Flavor Text", "flavor"),
-            ],
-        )
+        fields += [
+            ("Faction", "faction_name"),
+            ("Loyal", "is_loyal"),
+            ("Unique", "is_unique"),
+            ("Deck Limit", "deck_limit"),
+            ("Expansion", "pack_name"),
+            ("Card #", "position"),
+            ("Illustrator", "illustrator"),
+            ("Flavor Text", "flavor"),
+        ]
+    print_verbose_fields(card, fields)
     echo("")
 
 
 def print_verbose_fields(card, fields):
     for name, field in fields:
         value = card.get(field)
-        if value is not None:
-            secho("{}: ".format(name), bold=True, nl=False)
-            if type(value) is bool:
-                echo("Yes" if value else "No")
-            elif field in ["flavor"]:
-                print_markup(value)
-            elif type(value) is int:
-                echo(str(value))
-            else:
-                echo(value)
+        secho("{}: ".format(name), bold=True, nl=False)
+        if field == "icon":
+            secho(format_card_field(card, "icon"))
+        elif value is None:
+            echo("X")
+        elif type(value) is bool:
+            echo("Yes" if value else "No")
+        elif field in ["flavor"]:
+            print_markup(value)
+        elif type(value) is int:
+            echo(str(value))
+        else:
+            echo(value)
 
 
 def print_brief_card(card, options, show=None):
@@ -1031,7 +1040,7 @@ def format_field_name(field):
 def format_field(field, value, show_negation=True):
     """ Format a basic `field` and `value` for human friendly output. """
     if value is None:
-        return "No {}".format(format_field_name(field))
+        return "X {}".format(format_field_name(field))
     if type(value) is int:
         return "{} {}".format(value, format_field_name(field))
     if type(value) is bool:
