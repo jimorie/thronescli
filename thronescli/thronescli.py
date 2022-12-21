@@ -115,11 +115,35 @@ TAG_PATTERN = re_compile("<.*?>")
 
 
 class IntComparison(ParamType):
-    name = "INT COMPARISON"
+    name = "NUMBER COMPARISON"
     operators = {"==": eq, "!=": ne, "<": lt, "<=": le, ">": gt, ">=": ge}
     parser = re_compile(r"^(==|!=|<|<=|>|>=)?\s*(\d+)$")
 
-    def convert(self, value, param, ctx):
+    def convert(self, value, param=None, ctx=None):
+        """
+        Return a function that implements the integer comparison formulated by
+        `value`.
+
+        Examples:
+            >>> comparer = IntComparison()
+            >>> comparer.convert("10")(10)
+            True
+            >>> comparer.convert("!=10")(10)
+            False
+            >>> comparer.convert("<10")(10)
+            False
+            >>> comparer.convert("<10")(0)
+            True
+            >>> comparer.convert("<=10")(10)
+            True
+            >>> comparer.convert(">10")(-1)
+            False
+            >>> try:
+            ...     comparer.convert("foo")(0)
+            ... except Exception as e:
+            ...     print(str(e))
+            Invalid integer comparison: foo
+        """
         match = self.parser.match(value.strip())
         if not match:
             self.fail("Invalid integer comparison: {}".format(value))
@@ -373,6 +397,7 @@ def main(ctx, search, **options):
 
 
 def preprocess_options(search, options):
+    """ Preprocess all options. """
     preprocess_search(options, search)
     preprocess_regex(options)
     preprocess_case(options)
@@ -385,10 +410,12 @@ def preprocess_options(search, options):
 
 
 def preprocess_search(options, search):
+    """ Treat non-option args as one string. """
     options["name"] = " ".join(search) if search else None
 
 
 def preprocess_regex(options):
+    """ Compile regex patterns for relevant options. """
     flags = IGNORECASE if not options["case"] else 0
     if options["regex"]:
         if options["name"]:
@@ -408,6 +435,7 @@ def preprocess_regex(options):
 
 
 def preprocess_case(options):
+    """ Preprocess relevant options for case comparison. """
     # These options are always case insensitive
     opts = ("trait", "trait_isnt", "set", "keyword", "keyword_isnt")
     for opt in opts:
@@ -422,6 +450,7 @@ def preprocess_case(options):
 
 
 def preprocess_faction(options):
+    """ Preprocess faction arguments to valid options. """
     def postprocess_faction_value(value):
         return FACTION_ALIASES[value]
 
@@ -435,30 +464,38 @@ def preprocess_faction(options):
 
 
 def preprocess_icon(options):
+    """ Preprocess icon arguments to valid options. """
     preprocess_field(options, "icon", ICONS)
     preprocess_field(options, "icon_isnt", ICONS)
 
 
 def preprocess_sort(options):
+    """ Preprocess sortable arguments to valid options. """
     preprocess_field(options, "group", COUNT_KEYS, postprocess_value=get_field_db_key)
     preprocess_field(options, "sort", SORT_KEYS, postprocess_value=get_field_db_key)
     preprocess_field(options, "show", COUNT_KEYS, postprocess_value=get_field_db_key)
 
 
 def preprocess_count(options):
+    """ Preprocess count arguments to valid options. """
     preprocess_field(options, "count", COUNT_KEYS, postprocess_value=get_field_db_key)
 
 
 def preprocess_type(options):
+    """ Preprocess type arguments to valid options. """
     preprocess_field(options, "type", CARD_TYPES)
 
 
 def preprocess_keyword(options):
+    """ Preprocess keyword arguments to valid options. """
     preprocess_field(options, "keyword", KEYWORDS)
     preprocess_field(options, "keyword_isnt", KEYWORDS)
 
 
 def preprocess_field(options, field, candidates, postprocess_value=None):
+    """
+    Preprocess value of `field` in `options` to the best match in `candidates`.
+    """
     if options[field]:
         values = list(options[field])
         for i in range(len(values)):
@@ -478,6 +515,26 @@ def preprocess_field(options, field, candidates, postprocess_value=None):
 
 
 def get_single_match(value, candidates):
+    """
+    Return the single member in `candidates` that starts with `value`, else
+    `None`.
+
+    Examples:
+        >>> get_single_match("foo", ["foobar", "barfoo"])
+        'foobar'
+        >>> get_single_match("foo", ["foobar", "barfoo", "foobarfoo"]) is None
+        True
+        >>> get_single_match("foo", ["barfoo"]) is None
+        True
+        >>> get_single_match("foo", []) is None
+        True
+        >>> get_single_match("", []) is None
+        True
+        >>> get_single_match("", ["foobar"])
+        'foobar'
+        >>> get_single_match("", ["foobar", "barfoo"]) is None
+        True
+    """
     found = None
     for candidate in candidates:
         if candidate.startswith(value):
@@ -488,18 +545,22 @@ def get_single_match(value, candidates):
 
 
 def get_field_name(field):
+    """ Return `field` without negating suffix. """
     return field[: -len("_isnt")] if field.endswith("_isnt") else field
 
 
 def get_field_db_key(field):
+    """ Return the corresponding database field for `field`. """
     return DB_KEY_MAPPING.get(field, field)
 
 
 def get_faction_name(faction_code):
+    """ Return a human friendly faction name for `faction_code`. """
     return FACTIONS[faction_code].get("name", "House {}".format(capwords(faction_code)))
 
 
 def load_cards(options):
+    """ Return the card database loaded from file. """
     cards_file = get_cards_file()
     if not isfile(cards_file):
         update_cards()
@@ -508,6 +569,7 @@ def load_cards(options):
 
 
 def update_cards():
+    """ Fetch a new card database and write it to file. """
     cards_file = get_cards_file()
     try:
         remove(cards_file)
@@ -517,6 +579,7 @@ def update_cards():
 
 
 def get_cards_file():
+    """ Return the path of the card database file. """
     try:
         mkdir(get_app_dir("thronescli"))
     except OSError:
@@ -525,12 +588,14 @@ def get_cards_file():
 
 
 def filter_cards(cards, options):
+    """ Yield all members in `cards` that match the given `options`. """
     for card in cards:
         if test_card(card, options):
             yield card
 
 
 def test_card(card, options):
+    """ Return `True` if `card` match the given `options`, else `False`. """
     for option_name, value in options.items():
         test = CardFilters.get_test(option_name)
         if test and (value or type(value) is int or option_name in TEST_FALSE):
@@ -549,6 +614,30 @@ class CardFilters(object):
 
     @staticmethod
     def match_value(value, card_value, options):
+        """
+        Test if the requested `value` matches the `card_value`. Where `value`
+        can be both a string or a regex object.
+
+        Examples:
+            >>> CardFilters.match_value("foo", "foo", defaultdict(bool))
+            True
+            >>> CardFilters.match_value("foo", "bar", defaultdict(bool))
+            False
+            >>> CardFilters.match_value("foo", "Foo", defaultdict(bool))
+            True
+            >>> CardFilters.match_value("foo", "Foo", defaultdict(bool, case=True))
+            False
+            >>> CardFilters.match_value("foo", "foofoo", defaultdict(bool))
+            True
+            >>> CardFilters.match_value("foo", "foofoo", defaultdict(bool, exact=True))
+            False
+            >>> CardFilters.match_value(re_compile("f[oaeu]+"), "foofoo", defaultdict(bool))
+            True
+            >>> CardFilters.match_value(re_compile("f[oaeu]+"), "boo", defaultdict(bool))
+            False
+            >>> CardFilters.match_value(re_compile("f[oaeu]+"), "foofoo", defaultdict(bool, exact=True))
+            False
+        """
         if card_value is None:
             return False
         if hasattr(value, "search"):
@@ -580,9 +669,7 @@ class CardFilters(object):
 
     @staticmethod
     def test_faction_isnt(card, values, options):
-        return all(
-            not card["faction_code"].startswith(value.lower()) for value in values
-        )
+        return all(card["faction_code"] != value for value in values)
 
     @staticmethod
     def test_income(card, tests, options):
@@ -686,7 +773,7 @@ class CardFilters(object):
 
     @staticmethod
     def test_keyword(card, values, options):
-        keywords = _parse_keywords(card["text"])
+        keywords = parse_keywords(card["text"])
         any_or_all = any if options["inclusive"] else all
         return any_or_all(
             any(
@@ -751,7 +838,7 @@ def count_cards(cards, options):
                         if trait:
                             counts[count_field][trait.strip()] += 1
                 elif count_field == "keyword":
-                    for keyword in _parse_keywords(card["text"]):
+                    for keyword in parse_keywords(card["text"]):
                         counts[count_field][keyword] += 1
                 elif count_field in ["is_unique", "is_loyal"]:
                     if card[count_field]:
@@ -829,6 +916,7 @@ def print_verbose_fields(card, fields):
 
 
 def print_brief_card(card, options, show=None):
+    """ Print `card` details on one line. """
     if show is None:
         show = ["unique", "loyal", "faction", "type"]
         if card["type_code"] == "character":
@@ -849,19 +937,38 @@ def print_brief_card(card, options, show=None):
 
 
 def print_markup(text):
+    """ Print `text` with HTML markup converted to ASCII escape codes. """
     for styled_text in parse_markup(text):
         echo(styled_text, nl=False)
     echo("")
 
 
 def parse_markup(text):
-    """Very simple markup parser. Does not support nested tags."""
+    """
+    Parse `text` as HTML and yield ASCII styled strings. Supports only basic
+    HTML and does not handle nested tags.
+
+    Examples:
+        >>> list(parse_markup("foo"))
+        ['foo\\x1b[0m']
+        >>> list(parse_markup("<b>foo</b>"))
+        ['\\x1b[1mfoo\\x1b[0m']
+        >>> list(parse_markup("xxx<b>foo</b>yyy"))
+        ['xxx\\x1b[0m', '\\x1b[1mfoo\\x1b[0m', 'yyy\\x1b[0m']
+        >>> list(parse_markup("xxx<i>foo</i>yyy"))
+        ['xxx\\x1b[0m', '\\x1b[35m\\x1b[1mfoo\\x1b[0m', 'yyy\\x1b[0m']
+        >>> list(parse_markup("xxx<b>foo"))
+        ['xxx\\x1b[0m', '\\x1b[1mfoo\\x1b[0m']
+        >>> list(parse_markup("xxx</b>foo"))
+        ['xxx\\x1b[0m', 'foo\\x1b[0m']
+    """
     kwargs = {}
     beg = 0
     while True:
         end = text.find("<", beg)
         if end >= 0:
-            yield style(text[beg:end], **kwargs)
+            if beg < end:
+                yield style(text[beg:end], **kwargs)
             beg = end
             end = text.index(">", beg) + 1
             tag = text[beg:end]
@@ -876,15 +983,18 @@ def parse_markup(text):
                 kwargs.clear()
             beg = end
         else:
-            yield style(text[beg:], **kwargs)
+            if beg < len(text):
+                yield style(text[beg:], **kwargs)
             break
 
 
 def strip_markup(text):
+    """ Return a version of `text` without HTML tags. """
     return TAG_PATTERN.sub("", text)
 
 
 def print_counts(counts, options, total):
+    """ Print a human friendly summary of the `counts` and `total`. """
     if options["verbose"] == 0:
         echo("")
     for count_field, count_data in counts.items():
@@ -911,6 +1021,7 @@ def print_counts(counts, options, total):
 
 
 def format_field_name(field):
+    """ Format a `field` name for human friendly output. """
     field = FIELD_NAME_MAPPING.get(field, field)
     if field in ["str"]:
         return field.upper()
@@ -918,22 +1029,24 @@ def format_field_name(field):
 
 
 def format_field(field, value, show_negation=True):
+    """ Format a basic `field` and `value` for human friendly output. """
     if value is None:
         return "No {}".format(format_field_name(field))
-    elif type(value) is int:
+    if type(value) is int:
         return "{} {}".format(value, format_field_name(field))
-    elif type(value) is bool:
+    if type(value) is bool:
         if show_negation or value:
             return "{}{}".format("" if value else "Non-", format_field_name(field))
         return None
-    elif field == "faction_code" or field == "faction":
+    if field == "faction_code" or field == "faction":
         return get_faction_name(value)
-    elif isinstance(value, str):
+    if isinstance(value, str):
         return capwords(value)
     return str(value)
 
 
 def format_card_field(card, field, color=True, show_negation=True):
+    """ Format the value of `field` on `card` for human friendly output. """
     if field == "icon":
         icons = []
         if card["is_military"]:
@@ -952,15 +1065,16 @@ def format_card_field(card, field, color=True, show_negation=True):
             else:
                 icons.append("P")
         return " ".join(icons) if icons else "No Icons"
-    elif field == "keyword":
-        keywords = _parse_keywords(card["text"])
+    if field == "keyword":
+        keywords = parse_keywords(card["text"])
         if keywords:
             return " ".join(capwords(kw) + "." for kw in keywords)
     db_key = get_field_db_key(field)
     return format_field(field, card.get(db_key), show_negation=show_negation)
 
 
-def _parse_keywords(text):
+def parse_keywords(text):
+    """ Return the list of valid keywords found at the start of `text`. """
     text = text.lower()
     keywords = []
     while True:
