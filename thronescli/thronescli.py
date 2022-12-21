@@ -330,7 +330,7 @@ INT_COMPARISON = IntComparison()
     "--verbose",
     "-v",
     count=True,
-    help="Show verbose card data. Use twice (-vv) for all data.",
+    help="Show more card data.",
 )
 @option(
     "--version",
@@ -377,8 +377,8 @@ def main(ctx, search, **options):
     counts, total = count_cards(cards, options)
     if options["count"]:
         options["verbose"] -= 1
-    elif options["verbose"] == 0 and options["brief"] is False and total == 1:
-        options["verbose"] = 1
+    elif total == 1 and options["brief"] is False:
+        options["verbose"] += 1
     if options["show"]:
         options["verbose"] = 0
         options["brief"] = False
