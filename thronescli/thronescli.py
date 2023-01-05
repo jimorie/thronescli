@@ -247,7 +247,11 @@ INT_COMPARISON = IntComparison()
     default=False,
     help="Include cards only legal in draft format.",
 )
-@option("--name", help="Find cards with matching name. (This is the default search.)")
+@option(
+    "--name",
+    multiple=True,
+    help="Find cards with matching name. (This is the default search.)"
+)
 @option("--loyal", is_flag=True, help="Find loyal cards.")
 @option("--non-loyal", is_flag=True, help="Find non-loyal cards.")
 @option("--non-unique", is_flag=True, help="Find non-unique cards.")
@@ -422,7 +426,8 @@ def preprocess_options(search, options):
 
 def preprocess_search(options, search):
     """ Treat non-option args as one string. """
-    options["name"] = " ".join(search) if search else None
+    if search:
+        options["name"] = [" ".join(search), *options["name"]]
 
 
 def preprocess_regex(options):
@@ -430,7 +435,7 @@ def preprocess_regex(options):
     flags = IGNORECASE if not options["case"] else 0
     if options["regex"]:
         if options["name"]:
-            options["name"] = re_compile(options["name"], flags=flags)
+            options["name"] = [re_compile(x, flags=flags) for x in options["name"]]
         if options["trait"]:
             options["trait"] = tuple(
                 re_compile(value, flags=flags) for value in options["trait"]
@@ -457,7 +462,7 @@ def preprocess_case(options):
         for opt in opts:
             options[opt] = tuple(value.lower() for value in options[opt])
         if options["name"]:
-            options["name"] = options["name"].lower()
+            options["name"] = [name.lower() for name in options["name"]]
 
 
 def preprocess_faction(options):
@@ -717,7 +722,10 @@ class CardFilters(object):
 
     @staticmethod
     def test_name(card, value, options):
-        return CardFilters.match_value(value, card["name"], options)
+        return any(
+            CardFilters.match_value(name, card["name"], options)
+            for name in value
+        )
 
     @staticmethod
     def test_loyal(card, values, options):
