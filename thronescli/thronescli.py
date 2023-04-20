@@ -460,12 +460,12 @@ def preprocess_regex(options):
 def preprocess_case(options):
     """Preprocess relevant options for case comparison."""
     # These options are always case insensitive
-    opts = ("trait", "trait_isnt", "set", "keyword", "keyword_isnt")
+    opts = ("set", "keyword", "keyword_isnt")
     for opt in opts:
         options[opt] = tuple(value.lower() for value in options[opt])
     if not options["case"] and not options["regex"]:
         # These options respect the case and regex options
-        opts = ("text", "text_isnt", "illustrator")
+        opts = ("text", "text_isnt", "trait", "trait_isnt", "illustrator")
         for opt in opts:
             options[opt] = tuple(value.lower() for value in options[opt])
         if options["name"]:
