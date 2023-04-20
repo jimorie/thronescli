@@ -1,12 +1,13 @@
-version := $(shell python -c 'from thronescli.thronescli import __version__; print(__version__)')
+VENV_DIR = .venv
+VERSION := $(shell python3 -c 'from thronescli.thronescli import __version__; print(__version__)')
 
 dist:
-	.venv/bin/python3 setup.py bdist_wheel
+	${VENV_DIR}/bin/python3 setup.py bdist_wheel
 
 version:
 	git add thronescli/thronescli.py
-	git commit -m'Version ${version}'
-	git tag v${version}
+	git commit -m'Version ${VERSION}'
+	git tag v${VERSION}
 	git push --tags origin master
 
 clean:
@@ -16,9 +17,16 @@ clean:
 	rm -rf thronescli/__pycache__
 
 upload:
-	twine upload dist/*
+	${VENV_DIR}/bin/twine upload dist/*
 
 release: clean version dist upload
 
 format:
 	black thronescli
+
+lint:
+	black --check thronescli
+
+venv:
+	python3 -m venv ${VENV_DIR}
+	${VENV_DIR}/bin/pip install black twine
