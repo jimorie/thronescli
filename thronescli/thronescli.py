@@ -370,17 +370,13 @@ def main(ctx, search, **options):
     if len(argv) == 1:
         echo(ctx.get_usage())
         return
-    if options["cost"]:
-        options["type"] += ("character", "location", "attachment", "event")
-    if options["str"] or options["icon"]:
-        options["type"] += ("character",)
-    if (
-        options["income"]
-        or options["reserve"]
-        or options["claim"]
-        or options["initiative"]
-    ):
-        options["type"] += ("plot",)
+    if not options["type"]:
+        if options["cost"]:
+            options["type"] = ("character", "location", "attachment", "event")
+        if options["str"] or options["icon"]:
+            options["type"] = ("character",)
+        if any(options[x] for x in ("income", "reserve", "claim", "initiative")):
+            options["type"] = ("plot",)
     cards = load_cards(options)
     cards = filter_cards(cards, options)
     cards = sort_cards(cards, options)
