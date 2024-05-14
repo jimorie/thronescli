@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "thronescli"
+dynamic = ["version"]
+description = "A command line interface for the thronesdb.com card database."
+readme = "README.md"
+license = ""
+authors = [
+    { name = "Petter Nyström", email = "jimorie@gmail.com" },
+]
+keywords = [
+    "game of thrones",
+    "thrones",
+    "thronesdb.com",
+]
+classifiers = []
+dependencies = [
+    "click",
+    "clicksearch",
+]
+requires-python = ">= 3.6"
+
+[project.optional-dependencies]
+dev = ["black", "twine", "build", "hatchling"]
+
+[project.scripts]
+thronescli = "thronescli:main"
+
+[project.urls]
+Download = "https://github.com/jimorie/thronescli/archive/v3.0.0.tar.gz"
+Homepage = "https://github.com/jimorie/thronescli"
+
+[tool.hatch.version]
+path = "thronescli.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/thronescli.py",
+]
