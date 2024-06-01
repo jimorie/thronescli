@@ -1,7 +1,7 @@
 VENV_DIR = venv
 
 dist: venv
-	${VENV_DIR}/bin/hatch build
+	${VENV_DIR}/bin/python -m build --no-isolation -o dist .
 
 clean:
 	rm -rf build
