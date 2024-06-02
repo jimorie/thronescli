@@ -1,5 +1,0 @@
-[flake8]
-ignore = E211, E228, E221, E203, F811, W503, E241
-max-line-length = 88
-filename = *.py
-max-complexity = 15

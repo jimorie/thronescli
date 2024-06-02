@@ -20,13 +20,13 @@ from clicksearch import (
     MarkupText,
     MissingField,
     ModelBase,
-    Number,
     Text,
     fieldfilter,
 )
 
 if typing.TYPE_CHECKING:
-    from typing import Iterable
+    from typing import Any, Iterable, Mapping
+    import collections
 
 
 __version__ = "3.0.0"

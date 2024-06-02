@@ -1,29 +1,30 @@
 VENV_DIR = venv
 
-dist: venv
-	${VENV_DIR}/bin/python -m build --no-isolation -o dist .
-
 clean:
 	rm -rf build
 	rm -rf dist
 	rm -rf thronescli.egg-info
 	rm -rf __pycache__
 
+venv:
+	python3 -m venv ${VENV_DIR}
+	${VENV_DIR}/bin/pip install --upgrade pip
+	${VENV_DIR}/bin/pip install .[dev]
+
+dist: venv
+	${VENV_DIR}/bin/python -m build --no-isolation -o dist .
+
 upload: venv
 	${VENV_DIR}/bin/twine upload dist/*
 
 release: clean dist upload
 
-format:
-	black thronescli.py
+lint: venv
+	${VENV_DIR}/bin/ruff check
+	${VENV_DIR}/bin/black --check thronescli.py
 
-lint:
-	black --check thronescli.py
-
-venv:
-	python3 -m venv ${VENV_DIR}
-	${VENV_DIR}/bin/pip install --upgrade pip
-	${VENV_DIR}/bin/pip install .[dev]
+format: venv
+	${VENV_DIR}/bin/black thronescli.py
 
 testdata: venv
 	THRONESCLI_DATA=testdata ${VENV_DIR}/bin/python thronescli.py --update
