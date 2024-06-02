@@ -250,18 +250,12 @@ class Loyal(Flag):
             raise MissingField("Irrelevant for neutral")
         return super().fetch(item, default)
 
-    def is_missing(self, value: Any) -> bool:
-        return value is False
-
 
 class Unique(Flag):
     def fetch(self, item: Mapping, default: Any | type = MissingField) -> Any:
         if item["type_name"] not in {"Character", "Location", "Attachment"}:
             raise MissingField("Irrelevant for type")
         return super().fetch(item, default)
-
-    def is_missing(self, value: Any) -> bool:
-        return value is False
 
 
 class ThronesModel(ModelBase):
