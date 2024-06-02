@@ -250,12 +250,18 @@ class Loyal(Flag):
             raise MissingField("Irrelevant for neutral")
         return super().fetch(item, default)
 
+    def format_brief(self, value: Any) -> str:
+        return super().format_brief(value) if value else ""
+
 
 class Unique(Flag):
     def fetch(self, item: Mapping, default: Any | type = MissingField) -> Any:
         if item["type_name"] not in {"Character", "Location", "Attachment"}:
             raise MissingField("Irrelevant for type")
         return super().fetch(item, default)
+
+    def format_brief(self, value: Any) -> str:
+        return super().format_brief(value) if value else ""
 
 
 class ThronesModel(ModelBase):

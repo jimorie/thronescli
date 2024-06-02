@@ -112,6 +112,7 @@ Ironborn. Lady.
 Stealth.
 Reaction: After you win an unopposed challenge in which Asha Greyjoy is participating, stand her.
 Unique: Yes
+Loyal: No
 Faction: House Greyjoy
 Type: Character
 Cost: 5
@@ -136,6 +137,7 @@ Captain. Ironborn. Lady.
 Pillage. Stealth.
 Each other unique Ironborn character you control gains stealth.
 Unique: Yes
+Loyal: No
 Faction: House Greyjoy
 Type: Character
 Cost: 6
