@@ -19,7 +19,7 @@ keywords = [
 classifiers = []
 dependencies = [
     "click>=8.1.6,<9.0",
-    "clicksearch>=0.2.1,<0.3",
+    "clicksearch>=0.3.0,<1.0",
 ]
 requires-python = ">= 3.6"
 
