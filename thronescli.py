@@ -29,7 +29,7 @@ if typing.TYPE_CHECKING:
     import collections
 
 
-__version__ = "3.0.3"
+__version__ = "3.1.0"
 
 
 CARDS_URL = "https://thronesdb.com/api/public/cards/"
@@ -245,23 +245,64 @@ class ChallengeIcons(FieldBase):
 
 
 class Loyal(Flag):
+    """
+    Field class for card loyalty. Non-Loyal is by default not shown in brief
+    format.
+
+    Examples:
+
+        >>> ThronesModel.cli('--trait Recruit', reader=ThronesReader)
+        Arry: Unique. Loyal. The Night's Watch. Character. 4 Cost. 3 STR. M I.
+        Recruit from the Dungeons: The Night's Watch. Character. 3 Cost. 2 STR. No Icons.
+        Highborn Recruit: The Night's Watch. Character. 1 Cost. 1 STR. P.
+        <BLANKLINE>
+        Total count: 3
+
+        >>> ThronesModel.cli('--trait Recruit --show loyal', reader=ThronesReader)
+        Arry: Loyal.
+        Recruit from the Dungeons: Non-Loyal.
+        Highborn Recruit: Non-Loyal.
+        <BLANKLINE>
+        Total count: 3
+    """
+
     def fetch(self, item: Mapping, default: Any | type = MissingField) -> Any:
         if item["faction_code"] == "neutral":
             raise MissingField("Irrelevant for neutral")
         return super().fetch(item, default)
 
-    def format_brief(self, value: Any) -> str:
-        return super().format_brief(value) if value else ""
+    def format_brief(self, value: Any, show: bool = False) -> str:
+        return super().format_brief(value, show=show) if value or show else ""
 
 
 class Unique(Flag):
+    """
+    Field class for card uniqueness. Non-Unique is by default not shown in
+    brief format.
+
+    Examples:
+
+        >>> ThronesModel.cli('--trait Recruit', reader=ThronesReader)
+        Arry: Unique. Loyal. The Night's Watch. Character. 4 Cost. 3 STR. M I.
+        Recruit from the Dungeons: The Night's Watch. Character. 3 Cost. 2 STR. No Icons.
+        Highborn Recruit: The Night's Watch. Character. 1 Cost. 1 STR. P.
+        <BLANKLINE>
+        Total count: 3
+
+        >>> ThronesModel.cli('--trait Recruit --show unique', reader=ThronesReader)
+        Arry: Unique.
+        Recruit from the Dungeons: Non-Unique.
+        Highborn Recruit: Non-Unique.
+        <BLANKLINE>
+        Total count: 3
+    """
     def fetch(self, item: Mapping, default: Any | type = MissingField) -> Any:
         if item["type_name"] not in {"Character", "Location", "Attachment"}:
             raise MissingField("Irrelevant for type")
         return super().fetch(item, default)
 
-    def format_brief(self, value: Any) -> str:
-        return super().format_brief(value) if value else ""
+    def format_brief(self, value: Any, show: bool = False) -> str:
+        return super().format_brief(value, show=show) if value or show else ""
 
 
 class ThronesModel(ModelBase):

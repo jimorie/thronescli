@@ -54,4 +54,4 @@ test: venv testdata
 	@# Add an empty line at the end of code blocks for mark an end for doctest
 	@sed -i '' 's/^```$$/\n```/g' README.md.test
 	@# Run doctest!
-	THRONESCLI_DATA=testdata COLUMNS=80 ${VENV_DIR}/bin/python -m doctest -o NORMALIZE_WHITESPACE -o ELLIPSIS ${SRC} README.md.test
+	THRONESCLI_DATA=testdata COLUMNS=80 ${VENV_DIR}/bin/python -m doctest -o NORMALIZE_WHITESPACE -o ELLIPSIS ${SRC} README.md.test thronescli.py
