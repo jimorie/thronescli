@@ -292,6 +292,7 @@ class Unique(Flag):
         <BLANKLINE>
         Total count: 3
     """
+
     def fetch(self, item: Mapping, default: Any | type = MissingField) -> Any:
         if item["type_name"] not in {"Character", "Location", "Attachment"}:
             raise MissingField("Irrelevant for type")
