@@ -104,18 +104,14 @@ class Keyword(MarkupText, DelimitedText):
     def parse_keywords(self, value: str, short: bool = False) -> Iterable[str]:
         """
         Yield all keywords listed in `value`. If `short` is true,
-        any additional keyword parameters (within paranthesis) is
-        excluded.
+        any additional keyword parameters is excluded.
         """
-        while True:
+        for part in value.split("."):
+            part = part.strip()
             for keyword in self.KEYWORDS:
-                if value.startswith(keyword):
-                    fullkeyword, value = value.split(".", 1)
-                    value = value.lstrip()
-                    yield keyword if short else fullkeyword
+                if part.startswith(keyword):
+                    yield keyword if short else part
                     break
-            else:
-                break
 
     def fetch(self, item: Mapping, default: Any | type = MissingField) -> Any:
         """
