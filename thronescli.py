@@ -69,6 +69,19 @@ class ThronesReader(JsonLineReader):
             urllib.request.urlretrieve(CARDS_URL, input_file)
             with open(input_file) as inp, open(output_file, "w") as out:
                 for item in json.load(inp):
+                    # Detect X values
+                    xvalues = [
+                        ("cost", {"Character", "Attachment", "Location", "Event"}),
+                        ("strength", {"Character"}),
+                        ("claim", {"Plot"}),
+                        ("reserve", {"Plot"}),
+                        ("initiative", {"Plot"}),
+                        ("income", {"Plot"}),
+                    ]
+                    for fieldname, typenames in xvalues:
+                        if item[fieldname] is None and "X" in item["text"] and item["type_name"] in typenames:
+                            item[fieldname] = "X"
+                    # Write item one per line
                     out.write(json.dumps(item))
                     out.write("\n")
             os.remove(input_file)
@@ -302,6 +315,34 @@ class Unique(Flag):
         return super().format_brief(value, show=show) if value or show else ""
 
 
+class Cost(Count):
+    def is_missing(self, value: Any) -> bool:
+        """Don't report `None` as a missing value."""
+        return False
+
+    def fetch(self, item: Mapping, default: Any | type = MissingField) -> Any:
+        """Report as missing based on card type."""
+        if item["type_name"] not in {"Character", "Location", "Event", "Attachment"}:
+            raise MissingField("Irrelevant for card type")
+        return super().fetch(item, default=default)
+
+    def sortkey(self, item: Mapping) -> Any:
+        """
+        Returns a comparable-type version of this field's value in `item`, used
+        for sorting. For `Number` objects this is guaranteed to be an `int`
+        or `float`.
+        """
+        try:
+            value = self.fetch(item)
+        except MissingField:
+            return -3
+        if value is None:
+            return -2
+        if value == "X":
+            return -1
+        return value
+
+
 class ThronesModel(ModelBase):
     __version__ = __version__
 
@@ -337,23 +378,26 @@ class ThronesModel(ModelBase):
         },
         keyname="faction_name",
         optalias="-f",
+        autofilter=True,
+        inclusive=True,
     )
     type_name = Choice(
         ["Agenda", "Attachment", "Character", "Event", "Location", "Plot", "Title"],
         realname="Type",
         optalias="-t",
+        inclusive=True,
     )
-    cost = Count(inclusive=True)
+    cost = Cost(specials=["X"], inclusive=True, autofilter=True)
 
     # Characters
-    strength = Count(realname="STR")
-    icons = ChallengeIcons()
+    strength = Count(specials=["X"], realname="STR", autofilter=True)
+    icons = ChallengeIcons(autofilter=True)
 
     # Plots
-    claim = Count(inclusive=True)
-    income = Count(inclusive=True)
-    initiative = Count(inclusive=True)
-    reserve = Count(inclusive=True)
+    claim = Count(specials=["X"], inclusive=True, autofilter=True)
+    income = Count(specials=["X"], inclusive=True, autofilter=True)
+    initiative = Count(specials=["X"], inclusive=True, autofilter=True)
+    reserve = Count(specials=["X"], inclusive=True, autofilter=True)
 
     # Non-default fields
     illustrator = Text(inclusive=True, verbosity=2)

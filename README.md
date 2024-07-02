@@ -226,8 +226,8 @@ The Red Keep: Unique. House Lannister. Location. 4 Cost.
 The Red Keep: Unique. House Lannister. Location. 4 Cost.
 Ser Harys Swyft: Unique. House Lannister. Character. 4 Cost. 4 STR. P.
 Fair Isle: Unique. Loyal. House Lannister. Location. 3 Cost.
-Garth Greenhand: Unique. Loyal. House Tyrell. Attachment. 3 Cost.
 The Green Fork: Unique. Neutral. Location. 2 Cost.
+Garth Greenhand: Unique. Loyal. House Tyrell. Attachment. 3 Cost.
 
 Total count: 24
 ```
