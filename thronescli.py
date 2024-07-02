@@ -29,7 +29,7 @@ if typing.TYPE_CHECKING:
     import collections
 
 
-__version__ = "3.1.2"
+__version__ = "3.1.3"
 
 
 CARDS_URL = "https://thronesdb.com/api/public/cards/"
@@ -346,14 +346,14 @@ class ThronesModel(ModelBase):
     cost = Count(inclusive=True)
 
     # Characters
-    strength = Count(realname="STR", implied="--type character")
-    icons = ChallengeIcons(implied="--type character")
+    strength = Count(realname="STR")
+    icons = ChallengeIcons()
 
     # Plots
-    claim = Count(implied="--type plot", inclusive=True)
-    income = Count(implied="--type plot", inclusive=True)
-    initiative = Count(implied="--type plot", inclusive=True)
-    reserve = Count(implied="--type plot", inclusive=True)
+    claim = Count(inclusive=True)
+    income = Count(inclusive=True)
+    initiative = Count(inclusive=True)
+    reserve = Count(inclusive=True)
 
     # Non-default fields
     illustrator = Text(inclusive=True, verbosity=2)
