@@ -79,7 +79,11 @@ class ThronesReader(JsonLineReader):
                         ("income", {"Plot"}),
                     ]
                     for fieldname, typenames in xvalues:
-                        if item[fieldname] is None and "X" in item["text"] and item["type_name"] in typenames:
+                        if (
+                            item[fieldname] is None
+                            and "X" in item["text"]
+                            and item["type_name"] in typenames
+                        ):
                             item[fieldname] = "X"
                     # Write item one per line
                     out.write(json.dumps(item))
@@ -387,17 +391,17 @@ class ThronesModel(ModelBase):
         optalias="-t",
         inclusive=True,
     )
-    cost = Cost(specials=["X"], inclusive=True, autofilter=True)
+    cost = Cost(specials=["X"], autofilter=True)
 
     # Characters
     strength = Count(specials=["X"], realname="STR", autofilter=True)
     icons = ChallengeIcons(autofilter=True)
 
     # Plots
-    claim = Count(specials=["X"], inclusive=True, autofilter=True)
-    income = Count(specials=["X"], inclusive=True, autofilter=True)
-    initiative = Count(specials=["X"], inclusive=True, autofilter=True)
-    reserve = Count(specials=["X"], inclusive=True, autofilter=True)
+    claim = Count(specials=["X"], autofilter=True)
+    income = Count(specials=["X"], autofilter=True)
+    initiative = Count(specials=["X"], autofilter=True)
+    reserve = Count(specials=["X"], autofilter=True)
 
     # Non-default fields
     illustrator = Text(inclusive=True, verbosity=2)
