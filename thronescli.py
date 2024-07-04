@@ -29,7 +29,7 @@ if typing.TYPE_CHECKING:
     import collections
 
 
-__version__ = "3.1.3"
+__version__ = "3.1.4"
 
 
 CARDS_URL = "https://thronesdb.com/api/public/cards/"
