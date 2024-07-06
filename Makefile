@@ -12,13 +12,13 @@ venv:
 	${VENV_DIR}/bin/pip install --upgrade pip
 	${VENV_DIR}/bin/pip install .[dev]
 
-patch: venv
+patch: venv lint test
 	@VERSION=$$(${VENV_DIR}/bin/bump --patch --reset ${VERSION_SRC}); git add -u && git commit -m"Version $${VERSION}" && git tag "v$${VERSION}"
 
-minor: venv
+minor: venv lint test
 	@VERSION=$$(${VENV_DIR}/bin/bump --minor --reset ${VERSION_SRC}); git add -u && git commit -m"Version $${VERSION}" && git tag "v$${VERSION}"
 
-major: venv
+major: venv lint test
 	@VERSION=$$(${VENV_DIR}/bin/bump --major --reset ${VERSION_SRC}); git add -u && git commit -m"Version $${VERSION}" && git tag "v$${VERSION}"
 
 clean-tags:
