@@ -103,20 +103,20 @@ class ThronesReader(JsonLineReader):
 
 
 class Keyword(MarkupText, DelimitedText):
-    KEYWORDS = [
-        "Ambush",
-        "Assault",
-        "Bestow",
-        "Insight",
-        "Intimidate",
-        "Limited",
-        "No attachments",
-        "Pillage",
-        "Renown",
-        "Shadow",
-        "Stealth",
-        "Terminal",
-    ]
+    KEYWORDS = {
+        "Ambush": True,
+        "Assault": False,
+        "Bestow": True,
+        "Insight": False,
+        "Intimidate": False,
+        "Limited": False,
+        "No attachments": True,
+        "Pillage": False,
+        "Renown": False,
+        "Shadow": True,
+        "Stealth": False,
+        "Terminal": False,
+    }
 
     def parse_keywords(self, value: str, short: bool = False) -> Iterable[str]:
         """
@@ -125,10 +125,13 @@ class Keyword(MarkupText, DelimitedText):
         """
         for part in value.split("."):
             part = part.strip()
-            for keyword in self.KEYWORDS:
-                if part.startswith(keyword):
-                    yield keyword if short else part
-                    break
+            for keyword, can_have_info in self.KEYWORDS.items():
+                if can_have_info:
+                    if part.startswith(keyword):
+                        yield keyword if short else part
+                        break
+                elif part == keyword:
+                    yield keyword
 
     def fetch(self, item: Mapping, default: Any | type = MissingField) -> Any:
         """
