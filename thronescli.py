@@ -387,7 +387,9 @@ class ThronesModel(ModelBase):
     text = MarkupText(
         optalias="-x", verbosity=1, unlabeled=True, styles={"fg": "white"}
     )
-    keywords = Keyword(keyname="text", optname="keyword", verbosity=None)
+    keywords = Keyword(
+        keyname="text", optname="keyword", verbosity=None, autofilter=True
+    )
     unique = Unique(keyname="is_unique")
     loyal = Loyal(keyname="is_loyal")
     faction = Choice(
