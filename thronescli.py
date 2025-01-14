@@ -195,6 +195,11 @@ class ChallengeIcons(FieldBase):
         "intrigue": click.style("I", fg="green"),
         "power": click.style("P", fg="blue"),
     }
+    iconsortkeys = {
+        "military": 2,
+        "intrigue": 3,
+        "power": 4,
+    }
     iconkeys = {icon: f"is_{icon}" for icon in icons}
 
     def fetch(
@@ -233,6 +238,20 @@ class ChallengeIcons(FieldBase):
                     ctx=ctx,
                 )
         return icons
+
+    def sortkey(self, item: Mapping) -> Any:
+        """
+        Returns a comparable-type version of this field's value in `item`,
+        used for sorting.
+        """
+        return (
+            sum(
+                self.iconsortkeys[icon]
+                for icon, state in self.fetch(item).items()
+                if state
+            )
+            or 0
+        )
 
     @fieldfilter("--icon")
     def filter_icon(self, arg: list[str], value: dict, options: dict) -> bool:
