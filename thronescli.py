@@ -347,6 +347,18 @@ class Cost(Count):
         return value
 
 
+class ShadowCost(Cost):
+    SHADOW_PREFIX = "Shadow "
+
+    def fetch(self, item: Mapping, default: Any | type = MissingField) -> Any:
+        """Fetch the cost to bring out of shadows."""
+        for part in item[self.keyname].split("."):
+            part = part.strip()
+            if part.startswith(self.SHADOW_PREFIX):
+                return self.validate(part.removeprefix(self.SHADOW_PREFIX).strip("()"))
+        raise MissingField("No shadow keyword")
+
+
 class ThronesModel(ModelBase):
     __version__ = __version__
 
@@ -392,6 +404,13 @@ class ThronesModel(ModelBase):
         inclusive=True,
     )
     cost = Cost(specials=["X"], autofilter=True)
+    shadow = ShadowCost(
+        keyname="text",
+        realname="Shadow Cost",
+        specials=["X"],
+        autofilter=True,
+        verbosity=None,
+    )
 
     # Characters
     strength = Count(specials=["X"], realname="STR", autofilter=True)

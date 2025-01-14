@@ -61,6 +61,7 @@ Field filters:
   -t, --type TYPE         Filter on matching type.
   --type-isnt TYPE        Filter on non-matching type.
   --cost NUMBER           Filter on matching cost (number comparison).
+  --shadow-cost NUMBER    Filter on matching shadow cost (number comparison).
   --str NUMBER            Filter on matching str (number comparison).
   --icon ICON             Filter on having given icon.
   --icon-isnt ICON        Filter on not having given icon.
@@ -75,13 +76,14 @@ Where:
   FACTION  One of: baratheon, gj, greyjoy, lannister, martell, neutral,
            night's watch, nw, stark, targaryen, the night's watch, tyrell.
   FIELD    One of: claim, cost, faction, icons, illustrator, income,
-           initiative, keywords, loyal, name, reserve, set, str, text, traits,
-           type, unique.
+           initiative, keywords, loyal, name, reserve, set, shadow cost, str,
+           text, traits, type, unique.
   ICON     One of: military, intrigue, power. A combination of the letters
            'MIP' can be used to define multiple respective icons.
   NUMBER   A number optionally prefixed by one of the supported comparison
-           operators: ==, =, !=, !, <=, <, >=, >. With == being the default if
-           only a number is given.
+           operators: ==, =, !=, !, <=, <, >=, >. Or a range of two numbers
+           separated with the .. operator. With == being the default operator
+           if none is given.
   TEXT     A text partially matching the field value. The --case, --regex and
            --exact options can be applied. If prefixed with ! the match is
            negated.
