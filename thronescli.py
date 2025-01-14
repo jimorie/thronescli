@@ -135,7 +135,7 @@ class Keyword(MarkupText, DelimitedText):
         Return a list of all keywords defined by `item`. Raise a
         `MissingField` exception if there are no keywords.
         """
-        keywords = list(
+        keywords = sorted(
             self.parse_keywords(super(Keyword, self).fetch(item, default=default))
         )
         if len(keywords) == 0:
@@ -145,6 +145,16 @@ class Keyword(MarkupText, DelimitedText):
     def parts(self, value: Any) -> Iterable[str]:
         """Parts have already been split."""
         return value
+
+    def sortkey(self, item: Mapping) -> Any:
+        """
+        Returns a comparable-type version of this field's value in `item`,
+        used for sorting.
+        """
+        try:
+            return self.fetch(item)
+        except MissingField:
+            return []
 
     def format_value(self, value: Any) -> str | None:
         """Return a string representation of `value`."""
