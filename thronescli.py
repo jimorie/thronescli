@@ -360,16 +360,18 @@ class Cost(Count):
         return value
 
 
-class ShadowCost(Cost):
-    SHADOW_PREFIX = "Shadow "
+class KeywordValue(Cost):
+    def __init__(self, *args, keyword: str, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.keyword = keyword
 
     def fetch(self, item: Mapping, default: Any | type = MissingField) -> Any:
-        """Fetch the cost to bring out of shadows."""
+        """Fetch the keyword value."""
         for part in item[self.keyname].split("."):
             part = part.strip()
-            if part.startswith(self.SHADOW_PREFIX):
-                return self.validate(part.removeprefix(self.SHADOW_PREFIX).strip("()"))
-        raise MissingField("No shadow keyword")
+            if part.startswith(self.keyword):
+                return self.validate(part.removeprefix(self.keyword).strip(" ()"))
+        raise MissingField("Missing keyword")
 
 
 class ThronesModel(ModelBase):
@@ -419,8 +421,25 @@ class ThronesModel(ModelBase):
         inclusive=True,
     )
     cost = Cost(specials=["X"], autofilter=True)
-    shadow = ShadowCost(
+    ambush = KeywordValue(
         keyname="text",
+        keyword="Ambush",
+        realname="Ambush Cost",
+        specials=["X"],
+        autofilter=True,
+        verbosity=None,
+    )
+    bestow = KeywordValue(
+        keyname="text",
+        keyword="Bestow",
+        realname="Bestow Limit",
+        specials=["X"],
+        autofilter=True,
+        verbosity=None,
+    )
+    shadow = KeywordValue(
+        keyname="text",
+        keyword="Shadow",
         realname="Shadow Cost",
         specials=["X"],
         autofilter=True,
