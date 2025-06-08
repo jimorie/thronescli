@@ -180,6 +180,7 @@ Aeron Damphair: Unique. Loyal. House Greyjoy. Character. 5 Cost. 3 STR. I P.
 Hotho Humpback: Unique. House Greyjoy. Character. 4 Cost. 3 STR. I P.
 Left-Hand Lucas Codd: Unique. House Greyjoy. Character. 4 Cost. 3 STR. M I.
 Ralf Kenning: Unique. Loyal. House Greyjoy. Character. 4 Cost. 3 STR. M I.
+Moqorro: Unique. House Greyjoy. Character. 3 Cost. 3 STR. I.
 
 [ 4 STR ]
 
@@ -201,13 +202,13 @@ Tarle the Thrice-Drowned: Unique. Loyal. House Greyjoy. Character. 6 Cost. 5 STR
 
 Euron Crow's Eye: Unique. Loyal. House Greyjoy. Character. 7 Cost. 6 STR. M I P.
 
-Total count: 28
+Total count: 29
 ```
 
 Find all non-limited income providing cards:
 
 ```console
-$ thronescli --text "\+\d+ Income" --text "!Limited" --regex
+$ thronescli --text "\\+\\d+ Income" --text "!Limited" --regex
 Littlefinger: Unique. Neutral. Character. 5 Cost. 4 STR. I P.
 Tywin Lannister: Unique. Loyal. House Lannister. Character. 7 Cost. 6 STR. M I P.
 Paxter Redwyne: Unique. Loyal. House Tyrell. Character. 4 Cost. 3 STR. I.
@@ -232,8 +233,11 @@ Ser Harys Swyft: Unique. House Lannister. Character. 4 Cost. 4 STR. P.
 Fair Isle: Unique. Loyal. House Lannister. Location. 3 Cost.
 The Green Fork: Unique. Neutral. Location. 2 Cost.
 Garth Greenhand: Unique. Loyal. House Tyrell. Attachment. 3 Cost.
+Lannisport: Unique. Loyal. House Lannister. Location. 3 Cost.
+Gyles Rosby: Unique. House Lannister. Character. 3 Cost. 3 STR. P.
+Redwyne Merchanter: House Tyrell. Location. 2 Cost.
 
-Total count: 24
+Total count: 27
 ```
 
 Find the best faction for using [Street of Silk](http://thronesdb.com/card/02118):
@@ -242,17 +246,17 @@ Find the best faction for using [Street of Silk](http://thronesdb.com/card/02118
 $ thronescli --trait ally --trait companion --or trait --count faction
 [ Faction counts ]
 
-House Targaryen:   29
-Neutral:           27
-House Lannister:   22
+House Targaryen:   31
+Neutral:           29
+House Lannister:   24
+The Night's Watch: 17
 House Martell:     16
-House Baratheon:   14
-The Night's Watch: 14
+House Baratheon:   15
 House Stark:       14
-House Tyrell:      12
-House Greyjoy:     11
+House Greyjoy:     13
+House Tyrell:      13
 
-Total count: 159
+Total count: 172
 ```
 
 Find all 1 cost characters and get a breakdown of their trait and icon spread.
@@ -262,8 +266,8 @@ $ thronescli --cost 1 -t char --count icon --count trait
 [ Icons counts ]
 
 Power:       13
-Intrigue:    7
-Military:    3
+Intrigue:    8
+Military:    4
 
 [ Traits counts ]
 
@@ -280,8 +284,10 @@ Fool:        1
 House Frey:  1
 House Arryn: 1
 Recruit:     1
+Spy:         1
+Wildling:    1
 
-Total count: 24
+Total count: 26
 ```
 
 Credits
