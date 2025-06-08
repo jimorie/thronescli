@@ -143,16 +143,6 @@ class Keyword(MarkupText, DelimitedText):
         """Parts have already been split."""
         return value
 
-    def sortkey(self, item: Mapping) -> Any:
-        """
-        Returns a comparable-type version of this field's value in `item`,
-        used for sorting.
-        """
-        try:
-            return self.fetch(item)
-        except MissingField:
-            return []
-
     def format_value(self, value: Any) -> str | None:
         """Return a string representation of `value`."""
         if value:
@@ -162,7 +152,7 @@ class Keyword(MarkupText, DelimitedText):
                 )
                 + "."
             )
-        return None
+        return "No keyword"
 
     def count(self, item: Mapping, counts: collections.Counter):
         """
