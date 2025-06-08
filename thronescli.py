@@ -134,16 +134,10 @@ class Keyword(MarkupText, DelimitedText):
                     yield keyword
 
     def fetch(self, item: Mapping, default: Any | type = MissingField) -> Any:
-        """
-        Return a list of all keywords defined by `item`. Raise a
-        `MissingField` exception if there are no keywords.
-        """
-        keywords = sorted(
+        """Return a list of all keywords defined by `item`."""
+        return sorted(
             self.parse_keywords(super(Keyword, self).fetch(item, default=default))
         )
-        if len(keywords) == 0:
-            raise MissingField("No keywords")
-        return keywords
 
     def parts(self, value: Any) -> Iterable[str]:
         """Parts have already been split."""

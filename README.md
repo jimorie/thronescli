@@ -290,6 +290,24 @@ Wildling:    1
 Total count: 26
 ```
 
+Find all non-unique *Ranger* characters that can take attachments.
+
+```console
+$ thronescli --trait ranger --non-unique --keyword "!No attachments"
+Vindictive Ranger
+Ranger.
+Reaction: After you lose a challenge as the defending player, Vindictive Ranger gains stealth and a challenge icon of your choice until the end of the phase.
+Unique: No
+Loyal: No
+Faction: The Night's Watch
+Type: Character
+Cost: 3
+STR: 3
+Icons: M
+
+Total count: 1
+```
+
 Credits
 -------
 
